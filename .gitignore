@@ -1,0 +1,30 @@
+# ─── Android ───
+android-app/.gradle/
+android-app/build/
+android-app/app/build/
+android-app/local.properties
+android-app/.idea/
+*.apk
+*.aab
+*.keystore
+
+# ─── Angular / web-admin ───
+web-admin/node_modules/
+web-admin/dist/
+web-admin/.angular/
+
+# ─── React Native / client-app ───
+client-app/node_modules/
+client-app/.expo/
+client-app/android/
+client-app/ios/Pods/
+
+# ─── Marketing / HyperFrames ───
+marketing/node_modules/
+marketing/**/out/
+marketing/**/*.mp4
+
+# ─── OS / editor ───
+.DS_Store
+Thumbs.db
+*.log
