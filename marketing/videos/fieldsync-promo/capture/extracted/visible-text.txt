@@ -1,0 +1,13 @@
+FieldSync — Software de gestión de tareas para técnicos de campo (plomeros, electricistas, instaladores).
+
+MENSAJE CENTRAL:
+FieldSync conecta a la oficina, al técnico en la calle y al cliente en un solo flujo, incluso sin señal.
+
+TRES CARACTERÍSTICAS CLAVE:
+1. Asignación inteligente en mapas — El despachador asigna órdenes de trabajo al técnico más cercano arrastrándolas sobre un mapa. (Panel web en Angular)
+2. Sincronización offline-first — El técnico trabaja sin conexión; los cambios se guardan localmente y se sincronizan solos al recuperar señal. (App Android nativa · Room + Coroutines/Flow)
+3. Seguimiento en tiempo real — El cliente ve a su técnico acercarse en vivo y su tiempo estimado de llegada. (App cliente en React Native)
+
+PÚBLICO: Empresas de servicios de campo que quieren dejar atrás el despacho por teléfono y papel.
+
+CIERRE / CTA: FieldSync — Tu operación de campo, sincronizada.

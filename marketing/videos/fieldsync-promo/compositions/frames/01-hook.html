@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <template>
+      <style>
+        @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: "Inter", sans-serif;
+        }
+        /* full-bleed ground on a clip layer, never on #root */
+        .hook-bg {
+          position: absolute;
+          inset: 0;
+          background: #fdfae7;
+        }
+        .hook-diagonal {
+          position: absolute;
+          inset: 0;
+          background: rgba(30, 43, 250, 0.08);
+          clip-path: polygon(64% 0, 100% 0, 100% 100%, 78% 100%);
+        }
+        .hook-dots {
+          position: absolute;
+          right: 6cqw;
+          top: 10cqw;
+          width: 12cqw;
+          height: 12cqw;
+          background-image: radial-gradient(rgba(30, 43, 250, 0.35) 1.4px, transparent 1.6px);
+          background-size: 4cqw 4cqw;
+          opacity: 0.9;
+        }
+        .hook-content {
+          position: absolute;
+          left: 8cqw;
+          top: 36cqh;
+          width: 60cqw;
+        }
+        .hook-accent {
+          width: 60px;
+          height: 4px;
+          border-radius: 2px;
+          background: #1e2bfa;
+          transform-origin: left center;
+        }
+        .hook-eyebrow {
+          margin-top: 2.2cqw;
+          font-family: "Space Grotesk", sans-serif;
+          font-weight: 600;
+          font-size: 1.05cqw;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: #1e2bfa;
+        }
+        .hook-title {
+          margin-top: 1.4cqw;
+          font-family: "Space Grotesk", sans-serif;
+          font-weight: 700;
+          font-size: 7cqw;
+          letter-spacing: -0.02em;
+          line-height: 1.0;
+          color: #111111;
+        }
+        .hook-sub {
+          margin-top: 2cqw;
+          font-family: "Space Grotesk", sans-serif;
+          font-weight: 500;
+          font-size: 2cqw;
+          letter-spacing: -0.01em;
+          color: #6b6b6b;
+        }
+        .hook-progress {
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          height: 3px;
+          background: #1e2bfa;
+        }
+      </style>
+
+      <div data-hf-id="hf-q5nn" id="root" data-composition-id="01-hook" data-start="0" data-duration="4.5" data-width="1920" data-height="1080">
+        <div data-hf-id="hf-7s3g" class="hook-bg clip" data-start="0" data-duration="4.5" data-track-index="0"></div>
+        <div data-hf-id="hf-mfm5" class="hook-diagonal clip" data-start="0" data-duration="4.5" data-track-index="1"></div>
+        <div data-hf-id="hf-qk71" class="hook-dots clip" data-start="0" data-duration="4.5" data-track-index="2"></div>
+
+        <div data-hf-id="hf-71t9" class="hook-content clip" data-start="0" data-duration="4.5" data-track-index="3">
+          <div data-hf-id="hf-wxua" class="hook-accent" id="hook-accent"></div>
+          <div data-hf-id="hf-xfeq" class="hook-eyebrow" id="hook-eyebrow">Gestión de servicios de campo</div>
+          <div data-hf-id="hf-jau5" class="hook-title" id="hook-title">FieldSync</div>
+          <div data-hf-id="hf-2jm7" class="hook-sub" id="hook-sub">Tu operación de campo, sincronizada.</div>
+        </div>
+
+        <div data-hf-id="hf-m1sh" class="hook-progress clip" id="hook-progress" data-start="0" data-duration="4.5" data-track-index="4"></div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        tl.fromTo(".hook-diagonal", { xPercent: 12, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 0.9, ease: "power3.out" }, 0);
+        tl.fromTo(".hook-dots", { opacity: 0 }, { opacity: 0.9, duration: 0.8 }, 0.3);
+        tl.fromTo("#hook-accent", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.out" }, 0.35);
+        tl.fromTo("#hook-eyebrow", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 0.55);
+        tl.fromTo("#hook-title", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.7);
+        tl.fromTo("#hook-sub", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" }, 1.4);
+        tl.fromTo("#hook-progress", { width: "0%" }, { width: "100%", duration: 3.6, ease: "none" }, 0.2);
+
+        window.__timelines["01-hook"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

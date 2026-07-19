@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <template>
+      <style>
+        @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+        #root {
+          position: absolute; inset: 0; overflow: hidden;
+          container-type: size; font-family: "Inter", sans-serif;
+        }
+        .off-bg { position: absolute; inset: 0; background: #fdfae7; }
+
+        .off-left { position: absolute; left: 8cqw; top: 22cqh; width: 40cqw; }
+        .off-eyebrow {
+          font-family: "Space Grotesk", sans-serif; font-weight: 600;
+          font-size: 1.05cqw; letter-spacing: 0.16em; text-transform: uppercase; color: #1e2bfa;
+        }
+        .off-pill {
+          display: inline-block; margin-left: 0.8cqw; padding: 0.3cqw 1cqw;
+          background: rgba(30,43,250,0.08); color: #1e2bfa; border-radius: 100px;
+          font-family: "Space Grotesk", sans-serif; font-weight: 500; font-size: 0.9cqw;
+          letter-spacing: 0.04em; vertical-align: middle;
+        }
+        .off-h2 {
+          margin-top: 1.6cqw; font-family: "Space Grotesk", sans-serif; font-weight: 600;
+          font-size: 3cqw; line-height: 1.12; letter-spacing: -0.02em; color: #111111;
+        }
+        .off-highlight {
+          margin-top: 1.8cqw; padding: 1.1cqw 1.4cqw; background: rgba(30,43,250,0.06);
+          border-left: 4px solid #1e2bfa; border-radius: 12px; max-width: 34cqw;
+          font-family: "Inter", sans-serif; font-size: 1.2cqw; line-height: 1.55; color: #111111;
+        }
+
+        /* phone mock */
+        .off-phone {
+          position: absolute; right: 12cqw; top: 12cqh; width: 21cqw; height: 74cqh;
+          background: #0b1220; border-radius: 28px; border: 2px solid rgba(30,43,250,0.25);
+          padding: 1.4cqw; overflow: hidden;
+        }
+        .off-status {
+          display: flex; align-items: center; justify-content: space-between;
+          color: #7c88b5; font-family: "Space Grotesk", sans-serif; font-size: 0.8cqw;
+          padding: 0.2cqw 0.4cqw 0.9cqw;
+        }
+        .off-signal { display: flex; align-items: flex-end; gap: 2px; height: 1cqw; position: relative; }
+        .off-signal span { width: 0.4cqw; background: #1e2bfa; border-radius: 1px; }
+        .off-signal span:nth-child(1) { height: 30%; }
+        .off-signal span:nth-child(2) { height: 55%; }
+        .off-signal span:nth-child(3) { height: 80%; }
+        .off-signal span:nth-child(4) { height: 100%; }
+        .off-slash {
+          position: absolute; left: -0.2cqw; top: 45%; width: 2.2cqw; height: 2px;
+          background: #dc2626; transform: rotate(-30deg); opacity: 0; transform-origin: center;
+        }
+        .off-title {
+          color: #e2e8f0; font-family: "Space Grotesk", sans-serif; font-weight: 600;
+          font-size: 1.05cqw; padding: 0.2cqw 0.4cqw 0.9cqw;
+        }
+        .off-row {
+          background: rgba(120,140,255,0.08); border: 1px solid rgba(120,140,255,0.12);
+          border-radius: 12px; padding: 0.9cqw 1cqw; margin-bottom: 0.8cqw;
+        }
+        .off-row .t { color: #e2e8f0; font-family: "Inter", sans-serif; font-weight: 600; font-size: 0.9cqw; }
+        .off-row .c { color: #7c88b5; font-family: "Inter", sans-serif; font-size: 0.75cqw; margin-top: 0.2cqw; }
+        .off-badge {
+          display: inline-block; margin-top: 0.6cqw; padding: 0.2cqw 0.7cqw; border-radius: 100px;
+          font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 0.72cqw;
+        }
+        .off-badge.pending { background: rgba(30,43,250,0.18); color: #8b96ff; }
+        .off-badge.synced { background: rgba(5,150,105,0.2); color: #34d399; }
+      </style>
+
+      <div data-hf-id="hf-rsle" id="root" data-composition-id="03-offline-sync" data-start="0" data-duration="5.5" data-width="1920" data-height="1080">
+        <div data-hf-id="hf-gb3v" class="off-bg clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+
+        <div data-hf-id="hf-fffw" class="off-left clip" data-start="0" data-duration="5.5" data-track-index="1">
+          <div data-hf-id="hf-yeow">
+            <span data-hf-id="hf-wlev" class="off-eyebrow" id="off-eyebrow">Offline-first</span>
+            <span data-hf-id="hf-pfe8" class="off-pill" id="off-pill">ROOM · COROUTINES</span>
+          </div>
+          <div data-hf-id="hf-373k" class="off-h2" id="off-h2">El técnico trabaja aunque no haya señal</div>
+          <div data-hf-id="hf-rkn3" class="off-highlight" id="off-highlight">Los cambios se guardan al instante en el dispositivo y se sincronizan solos al recuperar la conexión.</div>
+        </div>
+
+        <div data-hf-id="hf-cj5y" class="off-phone clip" data-start="0" data-duration="5.5" data-track-index="2">
+          <div data-hf-id="hf-w5xi" class="off-status">
+            <span data-hf-id="hf-zwmt">9:41</span>
+            <div data-hf-id="hf-xqbo" class="off-signal">
+              <span data-hf-id="hf-uckh"></span><span data-hf-id="hf-l73p"></span><span data-hf-id="hf-me0s"></span><span data-hf-id="hf-lzpr"></span>
+              <div data-hf-id="hf-dxlw" class="off-slash" id="off-slash"></div>
+            </div>
+          </div>
+          <div data-hf-id="hf-r25p" class="off-title">Mis órdenes</div>
+
+          <div data-hf-id="hf-7u78" class="off-row">
+            <div data-hf-id="hf-gwr8" class="t">Fuga en tubería principal</div>
+            <div data-hf-id="hf-ps50" class="c">Ferretería El Sol · URGENTE</div>
+            <div data-hf-id="hf-c8js" class="off-badge pending" id="off-badge">• pendiente de sincronizar</div>
+          </div>
+          <div data-hf-id="hf-hkna" class="off-row" style="opacity: 0.6;">
+            <div data-hf-id="hf-jvez" class="t">Tablero eléctrico</div>
+            <div data-hf-id="hf-vruc" class="c">Condominio Las Palmas</div>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        tl.fromTo("#off-eyebrow", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 0.1);
+        tl.fromTo("#off-pill", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 0.35);
+        tl.fromTo("#off-h2", { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.4);
+        tl.fromTo(".off-phone", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.3);
+
+        // signal drops → slash appears, signal bars dim (offline)
+        tl.fromTo("#off-slash", { opacity: 0, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.4, ease: "power2.out" }, 1.5);
+        tl.fromTo(".off-signal span", { opacity: 1 }, { opacity: 0.25, duration: 0.3 }, 1.5);
+        // pending badge appears while offline
+        tl.fromTo("#off-badge", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 1.9);
+
+        tl.fromTo("#off-highlight", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 1.0);
+
+        // signal returns → slash off, bars restore, badge flips to synced
+        tl.to("#off-slash", { opacity: 0, scaleX: 0, duration: 0.3, ease: "power2.in" }, 3.2);
+        tl.to(".off-signal span", { opacity: 1, duration: 0.3 }, 3.2);
+        // seek-safe text/color swap via zero-duration tl.set (never .call / onUpdate)
+        tl.to("#off-badge", { opacity: 0, y: -6, duration: 0.25, ease: "power2.in" }, 3.4);
+        tl.set("#off-badge", { textContent: "✓ sincronizado", backgroundColor: "rgba(5,150,105,0.2)", color: "#34d399" }, 3.66);
+        tl.fromTo("#off-badge", { opacity: 0, y: 8, scale: 0.85 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.8)" }, 3.66);
+
+        window.__timelines["03-offline-sync"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

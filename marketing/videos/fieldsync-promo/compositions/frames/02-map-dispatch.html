@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <template>
+      <style>
+        @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: "Inter", sans-serif;
+        }
+        .map-bg { position: absolute; inset: 0; background: #fdfae7; }
+
+        .map-left { position: absolute; left: 8cqw; top: 20cqh; width: 40cqw; }
+        .map-eyebrow {
+          font-family: "Space Grotesk", sans-serif; font-weight: 600;
+          font-size: 1.05cqw; letter-spacing: 0.16em; text-transform: uppercase; color: #1e2bfa;
+        }
+        .map-pill {
+          display: inline-block; margin-left: 0.8cqw; padding: 0.3cqw 1cqw;
+          background: rgba(30,43,250,0.08); color: #1e2bfa; border-radius: 100px;
+          font-family: "Space Grotesk", sans-serif; font-weight: 500; font-size: 0.9cqw;
+          letter-spacing: 0.04em; vertical-align: middle;
+        }
+        .map-h2 {
+          margin-top: 1.6cqw; font-family: "Space Grotesk", sans-serif; font-weight: 600;
+          font-size: 3cqw; line-height: 1.12; letter-spacing: -0.02em; color: #111111;
+        }
+        .map-note {
+          margin-top: 1.6cqw; font-family: "Inter", sans-serif; font-weight: 400;
+          font-size: 1.25cqw; line-height: 1.6; color: #6b6b6b; max-width: 34cqw;
+        }
+
+        /* map mock panel */
+        .map-panel {
+          position: absolute; right: 6cqw; top: 16cqh; width: 42cqw; height: 62cqh;
+          background: #0b1220; border-radius: 16px; border: 1.5px solid rgba(30,43,250,0.2);
+          overflow: hidden;
+        }
+        .map-grid {
+          position: absolute; inset: 0;
+          background-image:
+            linear-gradient(rgba(120,140,255,0.10) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(120,140,255,0.10) 1px, transparent 1px);
+          background-size: 3cqw 3cqw;
+        }
+        .map-chrome {
+          position: absolute; top: 1cqw; left: 1.2cqw;
+          font-family: "Space Grotesk", sans-serif; font-size: 0.8cqw; letter-spacing: 0.1em;
+          text-transform: uppercase; color: #7c88b5;
+        }
+        .map-pin {
+          position: absolute; width: 1.6cqw; height: 1.6cqw; border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg); border: 2px solid #fdfae7;
+        }
+        .map-pin.order { background: #f59e0b; }
+        .map-pin.tech { background: #1e2bfa; }
+        .map-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .map-tag {
+          position: absolute; padding: 0.35cqw 0.9cqw; border-radius: 100px;
+          font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 0.85cqw;
+          background: #1e2bfa; color: #fdfae7; white-space: nowrap;
+        }
+      </style>
+
+      <div data-hf-id="hf-00az" id="root" data-composition-id="02-map-dispatch" data-start="0" data-duration="5.5" data-width="1920" data-height="1080">
+        <div data-hf-id="hf-66iu" class="map-bg clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+
+        <div data-hf-id="hf-78nx" class="map-left clip" data-start="0" data-duration="5.5" data-track-index="1">
+          <div data-hf-id="hf-yeow">
+            <span data-hf-id="hf-qo5y" class="map-eyebrow" id="map-eyebrow">Despacho inteligente</span>
+            <span data-hf-id="hf-mndr" class="map-pill" id="map-pill">ANGULAR</span>
+          </div>
+          <div data-hf-id="hf-lqlq" class="map-h2" id="map-h2">Asigna la orden al técnico más cercano</div>
+          <div data-hf-id="hf-6lip" class="map-note" id="map-note">El despachador arrastra la orden sobre el mapa y FieldSync la conecta con el técnico disponible más próximo.</div>
+        </div>
+
+        <div data-hf-id="hf-yib3" class="map-panel clip" data-start="0" data-duration="5.5" data-track-index="2">
+          <div data-hf-id="hf-zhvz" class="map-grid"></div>
+          <div data-hf-id="hf-mut5" class="map-chrome">Panel de despacho · Lima</div>
+
+          <svg data-hf-id="hf-zxal" class="map-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path data-hf-id="hf-6w66" id="map-link" d="M 30 62 Q 48 46 66 34" fill="none" stroke="#1e2bfa" stroke-width="0.8" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="60" />
+          </svg>
+
+          <div data-hf-id="hf-5kz9" class="map-pin order" id="map-order" style="left: 27%; top: 58%;"></div>
+          <div data-hf-id="hf-axct" class="map-pin tech" id="map-tech" style="left: 63%; top: 30%;"></div>
+          <div data-hf-id="hf-4054" class="map-pin tech" style="left: 22%; top: 24%; opacity: 0.4;"></div>
+          <div data-hf-id="hf-7mer" class="map-pin tech" style="left: 74%; top: 66%; opacity: 0.4;"></div>
+
+          <div data-hf-id="hf-0427" class="map-tag" id="map-assigned" style="left: 30%; top: 66%;">✓ Asignada · Carlos R.</div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        tl.fromTo("#map-eyebrow", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 0.1);
+        tl.fromTo("#map-pill", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 0.35);
+        tl.fromTo("#map-h2", { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.4);
+        tl.fromTo(".map-panel", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.3);
+        tl.fromTo("#map-note", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 0.9);
+
+        // order pin drops, connector draws to nearest tech, assigned tag pops
+        tl.fromTo("#map-order", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 1.6);
+        tl.fromTo("#map-tech", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(2)" }, 2.0);
+        tl.fromTo("#map-link", { attr: { "stroke-dashoffset": 60 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.9, ease: "power2.inOut" }, 2.4);
+        tl.fromTo("#map-assigned", { opacity: 0, y: 10, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.8)" }, 3.3);
+
+        window.__timelines["02-map-dispatch"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

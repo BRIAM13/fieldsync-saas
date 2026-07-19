@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <template>
+      <style>
+        @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+        #root {
+          position: absolute; inset: 0; overflow: hidden;
+          container-type: size; font-family: "Inter", sans-serif;
+        }
+        .rt-bg { position: absolute; inset: 0; background: #fdfae7; }
+
+        .rt-left { position: absolute; left: 8cqw; top: 22cqh; width: 40cqw; }
+        .rt-eyebrow {
+          font-family: "Space Grotesk", sans-serif; font-weight: 600;
+          font-size: 1.05cqw; letter-spacing: 0.16em; text-transform: uppercase; color: #1e2bfa;
+        }
+        .rt-pill {
+          display: inline-block; margin-left: 0.8cqw; padding: 0.3cqw 1cqw;
+          background: rgba(30,43,250,0.08); color: #1e2bfa; border-radius: 100px;
+          font-family: "Space Grotesk", sans-serif; font-weight: 500; font-size: 0.9cqw;
+          letter-spacing: 0.04em; vertical-align: middle;
+        }
+        .rt-h2 {
+          margin-top: 1.6cqw; font-family: "Space Grotesk", sans-serif; font-weight: 600;
+          font-size: 3cqw; line-height: 1.12; letter-spacing: -0.02em; color: #111111;
+        }
+        .rt-note {
+          margin-top: 1.6cqw; font-family: "Inter", sans-serif; font-size: 1.25cqw;
+          line-height: 1.6; color: #6b6b6b; max-width: 34cqw;
+        }
+
+        /* phone mock */
+        .rt-phone {
+          position: absolute; right: 12cqw; top: 12cqh; width: 21cqw; height: 74cqh;
+          background: #0b1220; border-radius: 28px; border: 2px solid rgba(30,43,250,0.25);
+          overflow: hidden;
+        }
+        .rt-map { position: absolute; inset: 0; }
+        .rt-mapgrid {
+          position: absolute; inset: 0;
+          background-image:
+            linear-gradient(rgba(120,140,255,0.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(120,140,255,0.08) 1px, transparent 1px);
+          background-size: 2.4cqw 2.4cqw;
+        }
+        .rt-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .rt-dest {
+          position: absolute; left: 70%; top: 24%; width: 1.5cqw; height: 1.5cqw;
+          border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+          background: #34d399; border: 2px solid #fdfae7;
+        }
+        .rt-tech {
+          position: absolute; left: 18%; top: 72%; width: 1.9cqw; height: 1.9cqw;
+          border-radius: 50%; background: #1e2bfa; border: 3px solid #fdfae7;
+          box-shadow: 0 0 0 6px rgba(30,43,250,0.25);
+        }
+        .rt-topbar {
+          position: absolute; top: 1cqw; left: 1.2cqw;
+          font-family: "Space Grotesk", sans-serif; font-size: 0.8cqw; letter-spacing: 0.1em;
+          text-transform: uppercase; color: #8b96ff;
+        }
+        .rt-card {
+          position: absolute; left: 1cqw; right: 1cqw; bottom: 1cqw;
+          background: #111a2e; border: 1px solid rgba(120,140,255,0.18); border-radius: 14px;
+          padding: 1cqw 1.1cqw;
+        }
+        .rt-card .who { color: #e2e8f0; font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 0.95cqw; }
+        .rt-card .eta { color: #8b96ff; font-family: "Inter", sans-serif; font-size: 0.8cqw; margin-top: 0.2cqw; }
+        .rt-card .eta b { color: #ffffff; font-family: "Space Grotesk", sans-serif; font-weight: 700; }
+      </style>
+
+      <div data-hf-id="hf-hr9n" id="root" data-composition-id="04-realtime-tracking" data-start="0" data-duration="5.5" data-width="1920" data-height="1080">
+        <div data-hf-id="hf-vutq" class="rt-bg clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+
+        <div data-hf-id="hf-afbp" class="rt-left clip" data-start="0" data-duration="5.5" data-track-index="1">
+          <div data-hf-id="hf-yeow">
+            <span data-hf-id="hf-lwl1" class="rt-eyebrow" id="rt-eyebrow">Seguimiento en vivo</span>
+            <span data-hf-id="hf-w3c9" class="rt-pill" id="rt-pill">REACT NATIVE</span>
+          </div>
+          <div data-hf-id="hf-qiqh" class="rt-h2" id="rt-h2">El cliente sigue a su técnico en tiempo real</div>
+          <div data-hf-id="hf-f5zb" class="rt-note" id="rt-note">Tu cliente ve al técnico acercarse en el mapa y sabe exactamente cuándo llega. Menos llamadas, más confianza.</div>
+        </div>
+
+        <div data-hf-id="hf-th1l" class="rt-phone clip" data-start="0" data-duration="5.5" data-track-index="2">
+          <div data-hf-id="hf-14hj" class="rt-map">
+            <div data-hf-id="hf-l3pf" class="rt-mapgrid"></div>
+            <svg data-hf-id="hf-fb8n" class="rt-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path data-hf-id="hf-m6wy" id="rt-route" d="M 18 72 Q 40 60 52 44 T 70 26" fill="none" stroke="#1e2bfa" stroke-width="0.7" stroke-linecap="round" stroke-dasharray="4 3" opacity="0.55" />
+            </svg>
+            <div data-hf-id="hf-u763" class="rt-dest"></div>
+            <div data-hf-id="hf-bu0o" class="rt-tech" id="rt-tech"></div>
+          </div>
+          <div data-hf-id="hf-f1vl" class="rt-topbar">En camino</div>
+          <div data-hf-id="hf-93kp" class="rt-card">
+            <div data-hf-id="hf-dzdu" class="who">Carlos Ramírez · Técnico</div>
+            <div data-hf-id="hf-vy5s" class="eta">Llega en ~<b data-hf-id="hf-u6dy" id="rt-eta">18</b> min</div>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        tl.fromTo("#rt-eyebrow", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 0.1);
+        tl.fromTo("#rt-pill", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 0.35);
+        tl.fromTo("#rt-h2", { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.4);
+        tl.fromTo(".rt-phone", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.3);
+        tl.fromTo("#rt-note", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 0.9);
+
+        // technician pin travels along the route toward the destination (px translate)
+        const MOVE_AT = 1.4, MOVE_DUR = 2.9;
+        tl.fromTo("#rt-tech",
+          { x: 0, y: 0 },
+          { x: 205, y: -360, duration: MOVE_DUR, ease: "power1.inOut" }, MOVE_AT);
+
+        // ETA counts down 18 → 8 as discrete, seek-safe keyframes
+        const etaEl = document.querySelector("#rt-eta");
+        const ETA_FROM = 18, ETA_TO = 8, STEPS = ETA_FROM - ETA_TO;
+        for (let i = 0; i <= STEPS; i += 1) {
+          const value = ETA_FROM - i;
+          tl.set(etaEl, { textContent: String(value) }, MOVE_AT + (i / STEPS) * MOVE_DUR);
+        }
+
+        window.__timelines["04-realtime-tracking"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+:root {
+  --fs-primary: #2563eb;
+  --fs-bg: #0f172a;
+  --fs-surface: #1e293b;
+  --fs-text: #e2e8f0;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fs-bg);
+  color: var(--fs-text);
+}

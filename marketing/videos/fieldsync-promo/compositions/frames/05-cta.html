@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <template>
+      <style>
+        @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+        #root {
+          position: absolute; inset: 0; overflow: hidden;
+          container-type: size; font-family: "Inter", sans-serif;
+        }
+        .cta-bg { position: absolute; inset: 0; background: #fdfae7; }
+        .cta-rings { position: absolute; inset: 0; display: grid; place-items: center; }
+        .cta-ring {
+          position: absolute; border: 1.5px solid rgba(30,43,250,0.14); border-radius: 50%;
+        }
+        .cta-ring.r1 { width: 34cqw; height: 34cqw; }
+        .cta-ring.r2 { width: 52cqw; height: 52cqw; }
+        .cta-ring.r3 { width: 72cqw; height: 72cqw; border-color: rgba(30,43,250,0.08); }
+
+        .cta-content {
+          position: absolute; inset: 0; display: flex; flex-direction: column;
+          align-items: center; justify-content: center; text-align: center;
+        }
+        .cta-accent {
+          width: 60px; height: 4px; border-radius: 2px; background: #1e2bfa;
+          transform-origin: center; margin-bottom: 1.8cqw;
+        }
+        .cta-title {
+          font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 6cqw;
+          letter-spacing: -0.02em; color: #111111; line-height: 1;
+        }
+        .cta-button {
+          margin-top: 2.4cqw; padding: 1cqw 2.4cqw; background: #1e2bfa; color: #fdfae7;
+          border-radius: 100px; font-family: "Space Grotesk", sans-serif; font-weight: 600;
+          font-size: 1.5cqw; letter-spacing: -0.01em;
+        }
+        .cta-tags { margin-top: 2.4cqw; display: flex; gap: 1cqw; }
+        .cta-tag {
+          padding: 0.4cqw 1.2cqw; border: 1.5px solid rgba(30,43,250,0.2);
+          background: rgba(30,43,250,0.04); border-radius: 100px; color: #1e2bfa;
+          font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 1cqw;
+          letter-spacing: 0.02em;
+        }
+      </style>
+
+      <div data-hf-id="hf-p0v1" id="root" data-composition-id="05-cta" data-start="0" data-duration="4" data-width="1920" data-height="1080">
+        <div data-hf-id="hf-3k7g" class="cta-bg clip" data-start="0" data-duration="4" data-track-index="0"></div>
+
+        <div data-hf-id="hf-mf3j" class="cta-rings clip" data-start="0" data-duration="4" data-track-index="1">
+          <div data-hf-id="hf-fche" class="cta-ring r1" id="cta-r1"></div>
+          <div data-hf-id="hf-8cqa" class="cta-ring r2" id="cta-r2"></div>
+          <div data-hf-id="hf-qdvy" class="cta-ring r3" id="cta-r3"></div>
+        </div>
+
+        <div data-hf-id="hf-rl1e" class="cta-content clip" data-start="0" data-duration="4" data-track-index="2">
+          <div data-hf-id="hf-b53i" class="cta-accent" id="cta-accent"></div>
+          <div data-hf-id="hf-yg2j" class="cta-title" id="cta-title">FieldSync</div>
+          <div data-hf-id="hf-8d43" class="cta-button" id="cta-button">Tu operación de campo, sincronizada.</div>
+          <div data-hf-id="hf-vy6w" class="cta-tags">
+            <div data-hf-id="hf-i4p1" class="cta-tag" id="cta-tag1">Angular</div>
+            <div data-hf-id="hf-n5d7" class="cta-tag" id="cta-tag2">Kotlin</div>
+            <div data-hf-id="hf-r759" class="cta-tag" id="cta-tag3">React Native</div>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        tl.fromTo("#cta-r1", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.1);
+        tl.fromTo("#cta-r2", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: "power2.out" }, 0.25);
+        tl.fromTo("#cta-r3", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.0, ease: "power2.out" }, 0.4);
+
+        tl.fromTo("#cta-accent", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.out" }, 0.5);
+        tl.fromTo("#cta-title", { y: 34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.6);
+        tl.fromTo("#cta-button", { y: 22, opacity: 0, scale: 0.92 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 1.2);
+        tl.fromTo(["#cta-tag1", "#cta-tag2", "#cta-tag3"], { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out", stagger: 0.12 }, 1.6);
+
+        window.__timelines["05-cta"] = tl;
+      </script>
+    </template>
+  </body>
+</html>
