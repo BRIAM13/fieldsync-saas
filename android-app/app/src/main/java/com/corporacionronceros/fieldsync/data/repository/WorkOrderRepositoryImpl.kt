@@ -25,6 +25,9 @@ class WorkOrderRepositoryImpl @Inject constructor(
     override fun observeWorkOrders(): Flow<List<WorkOrder>> =
         dao.observeAll().map { list -> list.map { it.toDomain() } }
 
+    override fun observeWorkOrder(id: String): Flow<WorkOrder?> =
+        dao.observeById(id).map { it?.toDomain() }
+
     override suspend fun refreshFromRemote(): Result<Unit> = runCatching {
         val remote = api.fetchWorkOrders()
         dao.upsertAll(remote.map { it.toEntity() })

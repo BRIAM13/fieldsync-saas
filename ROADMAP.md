@@ -88,11 +88,15 @@ Esta es la sección que traduce el proyecto en **argumentos de entrevista**. Cad
 - [ ] Inicializar repositorio Git.
 
 ### Fase 1 — Núcleo Android (prioridad de portafolio)
-- [ ] Esqueleto Clean Architecture + MVVM (`data / domain / presentation / di`).
-- [ ] Modelo de dominio `WorkOrder` + use cases.
-- [ ] Room como fuente de verdad local (offline-first).
-- [ ] Repositorio con `Flow`, ViewModels con `StateFlow`, pantalla en Compose.
-- [ ] Módulo legacy `history` en MVP (contrato View/Presenter).
+- [x] Esqueleto Clean Architecture + MVVM (`data / domain / presentation / di`).
+- [x] Modelo de dominio `WorkOrder` + use cases (observe / update / sync).
+- [x] Room como fuente de verdad local (offline-first).
+- [x] Repositorio con `Flow`, ViewModels con `StateFlow`, pantalla en Compose.
+- [x] Módulo legacy `history` en MVP (contrato View/Presenter).
+- [x] Navegación (Navigation Compose): lista → detalle de orden con `SavedStateHandle`.
+- [x] Sincronización real en 2.º plano: **WorkManager** (+ Hilt) con restricción de red + `NetworkMonitor`.
+- [x] `NetworkMonitor` / `SyncScheduler` como interfaces → ViewModel testeable con fakes.
+- [x] Tests: ordenamiento, use case de sync, y ViewModel (StateFlow + Turbine + coroutines-test).
 
 ### Fase 2 — Panel de despacho (Angular)
 - [ ] Proyecto Angular + routing.

@@ -15,6 +15,9 @@ interface WorkOrderRepository {
     /** Stream reactivo respaldado por Room: la UI reacciona a cambios locales sin polling. */
     fun observeWorkOrders(): Flow<List<WorkOrder>>
 
+    /** Stream reactivo de una sola orden por id (para la pantalla de detalle). */
+    fun observeWorkOrder(id: String): Flow<WorkOrder?>
+
     /** Descarga del backend y persiste localmente (offline-first). */
     suspend fun refreshFromRemote(): Result<Unit>
 

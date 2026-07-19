@@ -1,13 +1,9 @@
 package com.corporacionronceros.fieldsync
 
 import app.cash.turbine.test
+import com.corporacionronceros.fieldsync.FakeWorkOrderRepository.Companion.order
 import com.corporacionronceros.fieldsync.domain.model.Priority
-import com.corporacionronceros.fieldsync.domain.model.WorkOrder
-import com.corporacionronceros.fieldsync.domain.model.WorkOrderStatus
-import com.corporacionronceros.fieldsync.domain.repository.WorkOrderRepository
 import com.corporacionronceros.fieldsync.domain.usecase.ObserveWorkOrdersUseCase
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -18,30 +14,20 @@ import org.junit.Test
  */
 class ObserveWorkOrdersUseCaseTest {
 
-    private fun order(id: String, priority: Priority, at: Long) = WorkOrder(
-        id = id, title = "t", customerName = "c", address = "a",
-        priority = priority, status = WorkOrderStatus.ASSIGNED, scheduledAtEpochMs = at
-    )
-
-    private val fakeRepo = object : WorkOrderRepository {
-        override fun observeWorkOrders(): Flow<List<WorkOrder>> = flowOf(
+    @Test
+    fun `orders are sorted by priority descending then schedule`() = runTest {
+        val repo = FakeWorkOrderRepository(
             listOf(
-                order("low", Priority.LOW, 100),
-                order("urgent", Priority.URGENT, 500),
-                order("high", Priority.HIGH, 300)
+                order("low", priority = Priority.LOW, scheduledAt = 100),
+                order("urgent", priority = Priority.URGENT, scheduledAt = 500),
+                order("high", priority = Priority.HIGH, scheduledAt = 300)
             )
         )
-        override suspend fun refreshFromRemote() = Result.success(Unit)
-        override suspend fun updateStatus(id: String, status: WorkOrderStatus) = Unit
-        override suspend fun syncPendingChanges() = Result.success(0)
-    }
 
-    @Test
-    fun `orders are sorted by priority descending`() = runTest {
-        ObserveWorkOrdersUseCase(fakeRepo)().test {
+        ObserveWorkOrdersUseCase(repo)().test {
             val result = awaitItem()
             assertEquals(listOf("urgent", "high", "low"), result.map { it.id })
-            awaitComplete()
+            cancelAndIgnoreRemainingEvents()
         }
     }
 }

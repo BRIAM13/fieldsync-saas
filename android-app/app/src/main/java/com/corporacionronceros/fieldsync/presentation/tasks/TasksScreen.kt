@@ -1,5 +1,6 @@
 package com.corporacionronceros.fieldsync.presentation.tasks
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,7 +37,10 @@ import com.corporacionronceros.fieldsync.domain.model.WorkOrder
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TasksScreen(viewModel: TasksViewModel = hiltViewModel()) {
+fun TasksScreen(
+    onOrderClick: (String) -> Unit = {},
+    viewModel: TasksViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -71,7 +75,9 @@ fun TasksScreen(viewModel: TasksViewModel = hiltViewModel()) {
                     Modifier.fillMaxSize().padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(state.orders, key = { it.id }) { order -> WorkOrderCard(order) }
+                    items(state.orders, key = { it.id }) { order ->
+                        WorkOrderCard(order, onClick = { onOrderClick(order.id) })
+                    }
                 }
             }
         }
@@ -79,8 +85,8 @@ fun TasksScreen(viewModel: TasksViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun WorkOrderCard(order: WorkOrder) {
-    Card(Modifier.fillMaxWidth()) {
+private fun WorkOrderCard(order: WorkOrder, onClick: () -> Unit) {
+    Card(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Column(Modifier.padding(16.dp)) {
             Row(
                 Modifier.fillMaxWidth(),

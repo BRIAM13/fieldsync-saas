@@ -13,6 +13,9 @@ interface WorkOrderDao {
     @Query("SELECT * FROM work_orders")
     fun observeAll(): Flow<List<WorkOrderEntity>>
 
+    @Query("SELECT * FROM work_orders WHERE id = :id LIMIT 1")
+    fun observeById(id: String): Flow<WorkOrderEntity?>
+
     @Query("SELECT * FROM work_orders WHERE pendingSync = 1")
     suspend fun getPending(): List<WorkOrderEntity>
 

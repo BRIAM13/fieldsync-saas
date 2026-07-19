@@ -2,10 +2,14 @@ package com.corporacionronceros.fieldsync.di
 
 import android.content.Context
 import androidx.room.Room
+import com.corporacionronceros.fieldsync.data.connectivity.NetworkMonitor
+import com.corporacionronceros.fieldsync.data.connectivity.NetworkMonitorImpl
 import com.corporacionronceros.fieldsync.data.local.room.FieldSyncDatabase
 import com.corporacionronceros.fieldsync.data.local.room.WorkOrderDao
 import com.corporacionronceros.fieldsync.data.remote.WorkOrderApi
 import com.corporacionronceros.fieldsync.data.repository.WorkOrderRepositoryImpl
+import com.corporacionronceros.fieldsync.data.sync.SyncScheduler
+import com.corporacionronceros.fieldsync.data.sync.SyncSchedulerImpl
 import com.corporacionronceros.fieldsync.domain.repository.WorkOrderRepository
 import dagger.Binds
 import dagger.Module
@@ -41,4 +45,12 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindWorkOrderRepository(impl: WorkOrderRepositoryImpl): WorkOrderRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNetworkMonitor(impl: NetworkMonitorImpl): NetworkMonitor
+
+    @Binds
+    @Singleton
+    abstract fun bindSyncScheduler(impl: SyncSchedulerImpl): SyncScheduler
 }

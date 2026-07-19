@@ -6,10 +6,11 @@ App nativa en **Kotlin** para el técnico de campo. Recibe y cierra órdenes de 
 
 - **Kotlin** + **Coroutines / Flow** (asincronía estructurada y reactividad)
 - **Clean Architecture** (`domain` / `data` / `presentation`) + **MVVM**
-- **Jetpack Compose** (UI declarativa)
+- **Jetpack Compose** + **Navigation Compose** (UI declarativa, multi-pantalla)
 - **Room** como fuente de verdad local (offline-first) — expone `Flow`
+- **WorkManager** (+ Hilt) para sincronización real en segundo plano con restricción de red
 - **Hilt** para inyección de dependencias
-- **JUnit + Turbine** para tests de `Flow`
+- **JUnit + Turbine + coroutines-test** para tests de `Flow`, use cases y ViewModels
 
 ## Capas (Clean Architecture)
 
@@ -28,7 +29,25 @@ La regla de oro: **las dependencias apuntan hacia adentro**. `domain` no importa
 
 1. La UI **siempre** lee desde Room vía `Flow` → responde al instante, con o sin red.
 2. Un cambio de estado se escribe **local primero** y se marca `pendingSync`.
-3. `syncPendingChanges()` empuja al backend lo pendiente y limpia la marca.
+3. `SyncScheduler` encola un **WorkManager** worker con restricción `NetworkType.CONNECTED`:
+   se ejecuta solo cuando hay red y se aplaza (con backoff exponencial) cuando no la hay.
+4. `NetworkMonitor` (callbackFlow sobre `ConnectivityManager`) avisa al `TasksViewModel`
+   cuando vuelve la conexión, que entonces solicita la sincronización automáticamente.
+5. `SyncWorkOrdersWorker` (`@HiltWorker`, `CoroutineWorker`) ejecuta `syncPendingChanges()`
+   en segundo plano y devuelve `retry()` ante fallo para que WorkManager reintente.
+
+## Navegación
+
+`Single-Activity` + **Navigation Compose**: lista de órdenes (`TasksScreen`) → detalle
+(`TaskDetailScreen`). El `TaskDetailViewModel` lee el `orderId` del `SavedStateHandle`
+(argumento de ruta) y observa esa orden reactivamente; desde ahí se cambia el estado.
+
+## Testabilidad (por qué la arquitectura importa)
+
+`NetworkMonitor` y `SyncScheduler` son **interfaces**: el `TasksViewModel` depende de
+abstracciones, no de clases Android concretas. En los tests se sustituyen por fakes y se
+verifica, sin emulador, que: las órdenes se ordenan por prioridad, el contador de pendientes
+es correcto, y **recuperar la conexión dispara una sincronización**.
 
 ## Módulo legacy `history/` — MVP (a propósito)
 
@@ -43,9 +62,11 @@ Sirve para demostrar dos cosas ante un empleador:
 
 ```
 app/src/main/java/com/corporacionronceros/fieldsync/
-├── domain/       model · repository (interfaz) · usecase
+├── domain/       model · repository (interfaz) · usecase (observe/update/sync)
 ├── data/         local/room · remote · repository (impl + mappers)
-├── presentation/ MainActivity · tasks/ (UiState · ViewModel · Screen)
-├── di/           AppModule · RepositoryModule (Hilt)
+│                 connectivity/ (NetworkMonitor + impl) · sync/ (Worker · Scheduler + impl)
+├── presentation/ MainActivity · navigation/ (NavHost · Screen)
+│                 tasks/ (lista) · detail/ (detalle de orden)
+├── di/           AppModule · RepositoryModule (Hilt binds)
 └── history/      contract · model · presenter · view   ← MVP legacy
 ```
