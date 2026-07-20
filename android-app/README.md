@@ -42,9 +42,11 @@ La regla de oro: **las dependencias apuntan hacia adentro**. `domain` no importa
 (`TasksScreen`) → detalle (`TaskDetailScreen`). El `TaskDetailViewModel` lee el `orderId` del
 `SavedStateHandle` y observa esa orden reactivamente.
 
-El login (demo: `admin@fieldsync.dev` / `demo1234`) guarda el JWT en `TokenStore`, y el
-`HttpClient` de Ktor adjunta `Authorization: Bearer <token>` en cada petición (evaluado por
-request, token dinámico). `AuthRepository` mantiene el dominio ajeno a Ktor.
+El login (demo: `admin@fieldsync.dev` / `demo1234`) guarda el access + refresh token en
+`TokenStore`, respaldado por **Jetpack DataStore** (la sesión sobrevive a reinicios). El
+`HttpClient` usa el plugin **Auth Bearer** de Ktor: adjunta el access token y, ante un 401,
+llama a `/auth/refresh` y reintenta de forma **transparente**. `AuthRepository` mantiene el
+dominio ajeno a Ktor.
 
 ## Testabilidad (por qué la arquitectura importa)
 

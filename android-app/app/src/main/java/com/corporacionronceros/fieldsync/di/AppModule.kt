@@ -7,14 +7,23 @@ import com.corporacionronceros.fieldsync.data.connectivity.NetworkMonitor
 import com.corporacionronceros.fieldsync.data.connectivity.NetworkMonitorImpl
 import com.corporacionronceros.fieldsync.data.local.room.FieldSyncDatabase
 import com.corporacionronceros.fieldsync.data.local.room.WorkOrderDao
+import com.corporacionronceros.fieldsync.data.remote.ApiConfig
+import com.corporacionronceros.fieldsync.data.remote.AuthResponseDto
+import com.corporacionronceros.fieldsync.data.remote.RefreshRequestDto
 import com.corporacionronceros.fieldsync.data.repository.AuthRepositoryImpl
 import com.corporacionronceros.fieldsync.data.repository.WorkOrderRepositoryImpl
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.bearer
+import io.ktor.client.plugins.auth.markAsRefreshTokenRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.header
-import io.ktor.http.HttpHeaders
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import com.corporacionronceros.fieldsync.data.sync.SyncScheduler
@@ -48,9 +57,28 @@ object AppModule {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
         }
-        // Adjunta el JWT en cada petición (se evalúa por request, token dinámico).
-        install(DefaultRequest) {
-            tokenStore.token?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+        // Auth Bearer: adjunta el access token y, ante un 401, llama a /auth/refresh
+        // con el refresh token y reintenta — todo transparente para el resto de la app.
+        install(Auth) {
+            bearer {
+                loadTokens {
+                    val access = tokenStore.accessToken
+                    val refresh = tokenStore.refreshToken
+                    if (access != null && refresh != null) BearerTokens(access, refresh) else null
+                }
+                refreshTokens {
+                    val refresh = tokenStore.refreshToken ?: return@refreshTokens null
+                    val refreshed = runCatching {
+                        client.post("${ApiConfig.BASE_URL}/auth/refresh") {
+                            markAsRefreshTokenRequest()
+                            contentType(ContentType.Application.Json)
+                            setBody(RefreshRequestDto(refresh))
+                        }.body<AuthResponseDto>()
+                    }.getOrNull() ?: return@refreshTokens null
+                    tokenStore.save(refreshed.token, refreshed.refreshToken)
+                    BearerTokens(refreshed.token, refreshed.refreshToken)
+                }
+            }
         }
     }
 }

@@ -117,8 +117,11 @@ Esta es la sección que traduce el proyecto en **argumentos de entrevista**. Cad
 - [x] Listo para desplegar: Dockerfile + docker-compose + guía Neon/Render.
 - [x] **Autenticación JWT + multi-tenancy** por empresa (BCrypt, aislamiento por tenant, tests).
 - [x] Login cableado en los 3 clientes: Angular (interceptor+guard), Android (TokenStore+Bearer+login), RN (login+WS token).
+- [x] **Refresh tokens** (access corto + refresh largo, rotación + revocación) y `/auth/logout`.
+- [x] Persistencia del token en cliente: Angular (localStorage + interceptor de refresh), Android
+      (DataStore + Ktor Auth con refresh automático), RN (AsyncStorage + refresh).
 - [ ] Resolución de conflictos de sincronización (last-write-wins → estrategia por campo).
-- [ ] Persistencia del token en cliente (DataStore/EncryptedPrefs) y refresh tokens.
+- [ ] Roles/permisos por endpoint (ADMIN vs DISPATCHER vs TECHNICIAN).
 
 ### Fase 5 — Marketing (HyperFrames)
 - [x] Video promocional 15–30 s que simula la UI y resalta las 3 características clave.

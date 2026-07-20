@@ -15,10 +15,10 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun login(email: String, password: String): Result<Unit> = runCatching {
         val response = api.login(email, password)
-        tokenStore.save(response.token)
+        tokenStore.save(response.token, response.refreshToken)
     }
 
     override fun isLoggedIn(): Boolean = tokenStore.isLoggedIn
 
-    override fun logout() = tokenStore.clear()
+    override suspend fun logout() = tokenStore.clear()
 }

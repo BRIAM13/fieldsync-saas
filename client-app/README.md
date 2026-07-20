@@ -11,8 +11,9 @@ App móvil multiplataforma para el **cliente final**. Muestra el **seguimiento d
 > **Requiere el backend corriendo** (`cd ../backend && gradle run`). La URL base está en
 > `src/config.ts` (`10.0.2.2` para el emulador Android, `localhost` para iOS Simulator).
 
-La pantalla se **autentica al montar** (`AuthService.login`) para obtener el JWT, y lo pasa al
-WebSocket como query param (`?token=…`), que el backend exige antes de emitir posiciones.
+La pantalla obtiene un token con `ensureAccessToken()`: reutiliza el token **persistido en
+AsyncStorage**, lo **renueva** con el refresh token si hace falta, o inicia sesión como último
+recurso. Ese access token se pasa al WebSocket como query param (`?token=…`), que el backend exige.
 
 ## Por qué está en el portafolio
 

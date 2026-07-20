@@ -46,21 +46,27 @@ Las tablas (`work_orders`, `technicians`) se definen con el DSL tipado de Expose
 Toda la API de negocio exige un **JWT** (`Authorization: Bearer <token>`). El token lleva el
 `companyId`, y **cada consulta se aísla por empresa** (tenant): una empresa nunca ve datos de otra.
 
-- `POST /auth/register` → crea una **empresa nueva + su usuario admin**, devuelve token.
-- `POST /auth/login` → devuelve token + usuario + empresa.
+- `POST /auth/register` → crea una **empresa nueva + su usuario admin**; devuelve access + refresh token.
+- `POST /auth/login` → devuelve access token + refresh token + usuario + empresa.
+- `POST /auth/refresh` → renueva el access token (**rota** el refresh token: el viejo queda inválido).
+- `POST /auth/logout` → revoca el refresh token.
 
 **Cuenta demo** (sembrada al arrancar): `admin@fieldsync.dev` / `demo1234`.
 
 - Contraseñas hasheadas con **BCrypt** (nunca en claro).
-- Secreto/emisor/audiencia del JWT por entorno (`JWT_SECRET`, `JWT_ISSUER`, `JWT_AUDIENCE`).
+- **Access token corto** (15 min) + **refresh token largo** (30 días), opaco (256 bits) y
+  persistido/revocable en la tabla `refresh_tokens`.
+- Config del JWT por entorno (`JWT_SECRET`, `JWT_ISSUER`, `JWT_AUDIENCE`, `JWT_ACCESS_VALIDITY_MS`, `JWT_REFRESH_VALIDITY_MS`).
 - El WebSocket recibe el token como **query param** (`?token=…`), ya que no admite headers.
 
 ## API
 
 | Método | Ruta | Auth | Descripción |
 |--------|------|:----:|-------------|
-| `POST` | `/auth/register` | — | Crea empresa + admin → token |
-| `POST` | `/auth/login` | — | Login → token |
+| `POST` | `/auth/register` | — | Crea empresa + admin → access + refresh token |
+| `POST` | `/auth/login` | — | Login → access + refresh token |
+| `POST` | `/auth/refresh` | — | Renueva el access token (rota el refresh). Body: `{ "refreshToken": "…" }` |
+| `POST` | `/auth/logout` | — | Revoca el refresh token. Body: `{ "refreshToken": "…" }` |
 | `GET` | `/health` | — | Estado del servicio |
 | `GET` | `/api/work-orders` | 🔒 | Órdenes de **mi** empresa |
 | `GET` | `/api/work-orders/{id}` | 🔒 | Una orden (404 si no es mía o no existe) |

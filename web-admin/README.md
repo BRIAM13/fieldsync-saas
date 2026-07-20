@@ -16,8 +16,10 @@ Panel de despacho para el administrador/despachador. Asigna órdenes de trabajo 
 
 ### Autenticación
 
-- **Login** en `/login` (demo: `admin@fieldsync.dev` / `demo1234`) → `AuthService` guarda el JWT.
-- Un **HTTP interceptor** (`authInterceptor`) adjunta `Authorization: Bearer <token>` a la API.
+- **Login** en `/login` (demo: `admin@fieldsync.dev` / `demo1234`) → `AuthService` guarda el
+  access + refresh token en `localStorage` (la sesión sobrevive a recargas).
+- Un **HTTP interceptor** adjunta el Bearer y, ante un **401**, renueva el token con `/auth/refresh`
+  y reintenta la petición una vez; si el refresh falla, cierra la sesión.
 - Un **guard** (`authGuard`) protege `/dispatch` y `/orders` y redirige a `/login` sin sesión.
 
 ## Estructura

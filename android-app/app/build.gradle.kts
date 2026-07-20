@@ -50,6 +50,10 @@ dependencies {
     implementation("io.ktor:ktor-client-okhttp:2.3.12")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
+    implementation("io.ktor:ktor-client-auth:2.3.12") // Bearer + refresh automático
+
+    // DataStore: persistencia del token entre reinicios de la app
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // Jetpack Compose (BOM)
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))

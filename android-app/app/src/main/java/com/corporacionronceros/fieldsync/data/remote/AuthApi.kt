@@ -26,7 +26,15 @@ data class UserDto(
 data class CompanyDto(val id: String, val name: String)
 
 @Serializable
-data class AuthResponseDto(val token: String, val user: UserDto, val company: CompanyDto)
+data class AuthResponseDto(
+    val token: String,
+    val refreshToken: String,
+    val user: UserDto,
+    val company: CompanyDto
+)
+
+@Serializable
+data class RefreshRequestDto(val refreshToken: String)
 
 /** Cliente de las rutas de autenticación del backend. */
 @Singleton
