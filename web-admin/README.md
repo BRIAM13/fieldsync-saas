@@ -43,3 +43,11 @@ npm start        # ng serve → http://localhost:4200
 
 > Requiere Node.js y Angular CLI. Los archivos de configuración (`angular.json`,
 > `tsconfig.json`, `package.json`) están listos; `npm install` resuelve el resto.
+
+## 📸 Capturas
+
+Graba las capturas reales con el backend corriendo (ver la [guía de captura](../docs/CAPTURES.md))
+y colócalas en `docs/media/`. Luego descomenta:
+
+<!-- ![Login](../docs/media/web-login.png) -->
+<!-- ![Asignación en mapa](../docs/media/web-dispatch.gif) -->

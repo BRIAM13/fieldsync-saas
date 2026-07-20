@@ -34,3 +34,10 @@ client-app/
 npm install
 npm start        # expo start
 ```
+
+## 📸 Capturas
+
+Graba el seguimiento en vivo con el backend corriendo (ver la [guía de captura](../docs/CAPTURES.md))
+y colócalo en `docs/media/`. Luego descomenta:
+
+<!-- ![Seguimiento en tiempo real](../docs/media/client-tracking.gif) -->

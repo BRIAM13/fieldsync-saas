@@ -129,7 +129,8 @@ Esta es la sección que traduce el proyecto en **argumentos de entrevista**. Cad
 - [x] Diagrama de arquitectura (Clean Architecture + flujo offline-first, Mermaid).
 - [x] Tests unitarios (JUnit + Turbine para `Flow`, ViewModels con coroutines-test).
 - [x] CI con GitHub Actions (tests Android + build Angular).
-- [ ] Capturas / GIFs por app en los README.
+- [x] GIF hero (del promo) + stills de features en el README raíz; guía de captura (`docs/CAPTURES.md`).
+- [ ] Capturas/GIFs de las **apps reales** por app (requiere backend + emulador; huecos listos en cada README).
 
 ---
 

@@ -3,6 +3,12 @@
 **Software de gestión de tareas para técnicos de campo** — plomeros, electricistas e instaladores.
 Conecta la oficina, al técnico en la calle y al cliente final en un solo flujo, **incluso sin señal**.
 
+<p align="center">
+  <img src="docs/media/fieldsync-promo.gif" alt="FieldSync — video promocional" width="760">
+  <br>
+  <em>Video promocional (HyperFrames, HTML/CSS/GSAP) — UI del producto simulada · <a href="marketing/videos/fieldsync-promo/renders/video.mp4">ver MP4 1080p</a></em>
+</p>
+
 ![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?logo=kotlin&logoColor=white)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?logo=jetpackcompose&logoColor=white)
 ![Angular](https://img.shields.io/badge/Angular-DD0031?logo=angular&logoColor=white)
@@ -34,9 +40,11 @@ Tres aplicaciones sobre un modelo de dominio común:
 
 ### Las 3 características clave (una por tecnología)
 
-1. **Asignación inteligente en mapas** → panel *Angular*
-2. **Sincronización offline-first** → *Android · Room + Coroutines/Flow + WorkManager*
-3. **Seguimiento en tiempo real** → app cliente *React Native*
+| ![Asignación en mapa](docs/media/feature-map-angular.jpg) | ![Offline-first](docs/media/feature-offline-kotlin.jpg) | ![Tiempo real](docs/media/feature-realtime-rn.jpg) |
+|:--:|:--:|:--:|
+| **1. Asignación en mapas** · *Angular* | **2. Offline-first** · *Kotlin · Room + WorkManager* | **3. Tiempo real** · *React Native* |
+
+<sub>Imágenes: fotogramas del video promocional (UI simulada). Para capturas de las apps reales, ver la [guía de captura](docs/CAPTURES.md).</sub>
 
 ### El ecosistema conectado
 

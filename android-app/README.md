@@ -74,3 +74,11 @@ app/src/main/java/com/corporacionronceros/fieldsync/
 ├── di/           AppModule · RepositoryModule (Hilt binds)
 └── history/      contract · model · presenter · view   ← MVP legacy
 ```
+
+## 📸 Capturas
+
+Graba las capturas reales con el emulador/dispositivo y el backend corriendo
+(ver la [guía de captura](../docs/CAPTURES.md)); colócalas en `docs/media/` y descomenta:
+
+<!-- ![Lista de órdenes](../docs/media/android-tasks.png) -->
+<!-- ![Sincronización offline](../docs/media/android-offline.gif) -->
