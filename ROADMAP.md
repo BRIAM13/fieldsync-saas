@@ -120,8 +120,9 @@ Esta es la sección que traduce el proyecto en **argumentos de entrevista**. Cad
 - [x] **Refresh tokens** (access corto + refresh largo, rotación + revocación) y `/auth/logout`.
 - [x] Persistencia del token en cliente: Angular (localStorage + interceptor de refresh), Android
       (DataStore + Ktor Auth con refresh automático), RN (AsyncStorage + refresh).
+- [x] **Roles y permisos por endpoint** (RBAC): `authorize()` en Ktor, usuarios demo por rol,
+      `POST /api/users` (solo ADMIN), UI de Angular sensible al rol; con tests.
 - [ ] Resolución de conflictos de sincronización (last-write-wins → estrategia por campo).
-- [ ] Roles/permisos por endpoint (ADMIN vs DISPATCHER vs TECHNICIAN).
 
 ### Fase 5 — Marketing (HyperFrames)
 - [x] Video promocional 15–30 s que simula la UI y resalta las 3 características clave.

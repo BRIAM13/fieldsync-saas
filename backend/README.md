@@ -51,7 +51,24 @@ Toda la API de negocio exige un **JWT** (`Authorization: Bearer <token>`). El to
 - `POST /auth/refresh` → renueva el access token (**rota** el refresh token: el viejo queda inválido).
 - `POST /auth/logout` → revoca el refresh token.
 
-**Cuenta demo** (sembrada al arrancar): `admin@fieldsync.dev` / `demo1234`.
+**Cuentas demo** (sembradas, todas con contraseña `demo1234`):
+
+| Email | Rol | Puede |
+|-------|-----|-------|
+| `admin@fieldsync.dev` | ADMIN | Todo, incluido crear usuarios |
+| `dispatcher@fieldsync.dev` | DISPATCHER | Ver, asignar órdenes y ver técnicos |
+| `tech@fieldsync.dev` | TECHNICIAN | Ver órdenes, cambiar estado, sincronizar |
+
+### Roles y permisos (RBAC)
+
+El rol viaja en el JWT y se exige por endpoint con el helper `Route.authorize(vararg roles)`
+(responde **403** si el rol no está permitido):
+
+| Endpoint | Roles permitidos |
+|----------|------------------|
+| `GET /api/work-orders`, `GET /{id}`, `PATCH /{id}/status`, `POST /api/sync` | ADMIN · DISPATCHER · TECHNICIAN |
+| `PATCH /api/work-orders/{id}/assignment`, `GET /api/technicians` | ADMIN · DISPATCHER |
+| `POST /api/users` (crear usuario en el tenant) | ADMIN |
 
 - Contraseñas hasheadas con **BCrypt** (nunca en claro).
 - **Access token corto** (15 min) + **refresh token largo** (30 días), opaco (256 bits) y
@@ -71,8 +88,9 @@ Toda la API de negocio exige un **JWT** (`Authorization: Bearer <token>`). El to
 | `GET` | `/api/work-orders` | 🔒 | Órdenes de **mi** empresa |
 | `GET` | `/api/work-orders/{id}` | 🔒 | Una orden (404 si no es mía o no existe) |
 | `PATCH` | `/api/work-orders/{id}/status` | 🔒 | Cambia el estado. Body: `{ "status": "IN_PROGRESS" }` |
-| `PATCH` | `/api/work-orders/{id}/assignment` | 🔒 | Asigna a un técnico. Body: `{ "technicianId": "T-01" }` |
-| `GET` | `/api/technicians` | 🔒 | Técnicos de mi empresa |
+| `PATCH` | `/api/work-orders/{id}/assignment` | 🔒 admin/disp | Asigna a un técnico. Body: `{ "technicianId": "T-01" }` |
+| `GET` | `/api/technicians` | 🔒 admin/disp | Técnicos de mi empresa |
+| `POST` | `/api/users` | 🔒 admin | Crea un usuario. Body: `{ "name","email","password","role" }` |
 | `POST` | `/api/sync` | 🔒 | Aplica cambios pendientes en bloque (offline-first) |
 | `WS` | `/ws/tracking/{orderId}?token=JWT` | 🔒 | Stream en tiempo real de posición + ETA |
 

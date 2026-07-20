@@ -1,10 +1,13 @@
 package com.corporacionronceros.fieldsync
 
+import com.corporacionronceros.fieldsync.model.AssignmentRequest
 import com.corporacionronceros.fieldsync.model.AuthResponse
+import com.corporacionronceros.fieldsync.model.CreateUserRequest
 import com.corporacionronceros.fieldsync.model.LoginRequest
 import com.corporacionronceros.fieldsync.model.RefreshRequest
 import com.corporacionronceros.fieldsync.model.RegisterRequest
 import com.corporacionronceros.fieldsync.model.StatusUpdateRequest
+import com.corporacionronceros.fieldsync.model.UserRole
 import com.corporacionronceros.fieldsync.model.WorkOrder
 import com.corporacionronceros.fieldsync.model.WorkOrderStatus
 import com.corporacionronceros.fieldsync.repository.SeedData
@@ -32,10 +35,13 @@ class WorkOrderApiTest {
     private fun ApplicationTestBuilder.jsonClient(): HttpClient =
         createClient { install(ContentNegotiation) { json() } }
 
-    private suspend fun HttpClient.loginDemo(): String {
+    private suspend fun HttpClient.loginDemo(): String = loginAs(SeedData.DEMO_ADMIN_EMAIL)
+
+    /** Los usuarios semilla (admin/dispatcher/técnico) comparten la contraseña demo. */
+    private suspend fun HttpClient.loginAs(email: String): String {
         val res: AuthResponse = post("/auth/login") {
             contentType(ContentType.Application.Json)
-            setBody(LoginRequest(SeedData.DEMO_ADMIN_EMAIL, SeedData.DEMO_ADMIN_PASSWORD))
+            setBody(LoginRequest(email, SeedData.DEMO_ADMIN_PASSWORD))
         }.body()
         return res.token
     }
@@ -99,6 +105,52 @@ class WorkOrderApiTest {
             contentType(ContentType.Application.Json)
             setBody(RefreshRequest(login.refreshToken))
         }.status)
+    }
+
+    @Test
+    fun `technician cannot assign orders but dispatcher can (RBAC)`() = testApplication {
+        application { module() }
+        val client = jsonClient()
+        val techToken = client.loginAs(SeedData.DEMO_TECH_EMAIL)
+        val dispToken = client.loginAs(SeedData.DEMO_DISPATCHER_EMAIL)
+
+        val techTry = client.patch("/api/work-orders/WO-1042/assignment") {
+            bearerAuth(techToken)
+            contentType(ContentType.Application.Json)
+            setBody(AssignmentRequest("T-01"))
+        }
+        assertEquals(HttpStatusCode.Forbidden, techTry.status)
+
+        val dispTry = client.patch("/api/work-orders/WO-1042/assignment") {
+            bearerAuth(dispToken)
+            contentType(ContentType.Application.Json)
+            setBody(AssignmentRequest("T-01"))
+        }
+        assertEquals(HttpStatusCode.OK, dispTry.status)
+    }
+
+    @Test
+    fun `only admin can create users (RBAC)`() = testApplication {
+        application { module() }
+        val client = jsonClient()
+        val techToken = client.loginAs(SeedData.DEMO_TECH_EMAIL)
+        val adminToken = client.loginAs(SeedData.DEMO_ADMIN_EMAIL)
+
+        val body = CreateUserRequest("Nuevo", "nuevo@demo.dev", "secret123", UserRole.TECHNICIAN)
+
+        val techTry = client.post("/api/users") {
+            bearerAuth(techToken)
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }
+        assertEquals(HttpStatusCode.Forbidden, techTry.status)
+
+        val adminTry = client.post("/api/users") {
+            bearerAuth(adminToken)
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }
+        assertEquals(HttpStatusCode.Created, adminTry.status)
     }
 
     @Test

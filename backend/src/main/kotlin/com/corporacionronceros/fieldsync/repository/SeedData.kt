@@ -14,7 +14,12 @@ object SeedData {
 
     const val DEMO_COMPANY_ID = "demo-co"
     const val DEMO_ADMIN_EMAIL = "admin@fieldsync.dev"
+    const val DEMO_DISPATCHER_EMAIL = "dispatcher@fieldsync.dev"
+    const val DEMO_TECH_EMAIL = "tech@fieldsync.dev"
     const val DEMO_ADMIN_PASSWORD = "demo1234"
+
+    /** Usuario semilla con su contraseña en claro (el repo la hashea al sembrar). */
+    data class SeedUser(val user: User, val password: String)
 
     fun company() = Company(DEMO_COMPANY_ID, "Servicios Demo SAC")
 
@@ -24,6 +29,19 @@ object SeedData {
         email = DEMO_ADMIN_EMAIL,
         name = "Admin Demo",
         role = UserRole.ADMIN
+    )
+
+    /** Un usuario por rol para demostrar el control de acceso (RBAC). Todos usan `demo1234`. */
+    fun users(): List<SeedUser> = listOf(
+        SeedUser(adminUser(), DEMO_ADMIN_PASSWORD),
+        SeedUser(
+            User("u-disp", DEMO_COMPANY_ID, DEMO_DISPATCHER_EMAIL, "Despachador Demo", UserRole.DISPATCHER),
+            DEMO_ADMIN_PASSWORD
+        ),
+        SeedUser(
+            User("u-tech", DEMO_COMPANY_ID, DEMO_TECH_EMAIL, "Técnico Demo", UserRole.TECHNICIAN),
+            DEMO_ADMIN_PASSWORD
+        ),
     )
 
     fun orders(): List<WorkOrder> {

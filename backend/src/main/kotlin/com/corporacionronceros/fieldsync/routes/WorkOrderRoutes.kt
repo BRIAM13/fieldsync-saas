@@ -5,7 +5,9 @@ import com.corporacionronceros.fieldsync.model.AssignmentRequest
 import com.corporacionronceros.fieldsync.model.StatusUpdateRequest
 import com.corporacionronceros.fieldsync.model.SyncRequest
 import com.corporacionronceros.fieldsync.model.SyncResponse
+import com.corporacionronceros.fieldsync.model.UserRole
 import com.corporacionronceros.fieldsync.repository.WorkOrderRepository
+import com.corporacionronceros.fieldsync.security.authorize
 import com.corporacionronceros.fieldsync.security.companyId
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
@@ -48,23 +50,29 @@ fun Route.workOrderRoutes(repository: WorkOrderRepository) {
             }
         }
 
-        patch("/{id}/assignment") {
-            val id = call.parameters["id"]!!
-            val body = call.receive<AssignmentRequest>()
-            val updated = repository.assign(call.companyId(), id, body.technicianId)
-            if (updated == null) {
-                call.respond(
-                    HttpStatusCode.NotFound,
-                    ApiError("Orden $id o técnico ${body.technicianId} no encontrado")
-                )
-            } else {
-                call.respond(updated)
+        // Asignación de la orden a un técnico: solo ADMIN o DISPATCHER (RBAC)
+        authorize(UserRole.ADMIN, UserRole.DISPATCHER) {
+            patch("/{id}/assignment") {
+                val id = call.parameters["id"]!!
+                val body = call.receive<AssignmentRequest>()
+                val updated = repository.assign(call.companyId(), id, body.technicianId)
+                if (updated == null) {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ApiError("Orden $id o técnico ${body.technicianId} no encontrado")
+                    )
+                } else {
+                    call.respond(updated)
+                }
             }
         }
     }
 
-    get("/api/technicians") {
-        call.respond(repository.technicians(call.companyId()))
+    // Técnicos disponibles para asignar: solo ADMIN o DISPATCHER
+    authorize(UserRole.ADMIN, UserRole.DISPATCHER) {
+        get("/api/technicians") {
+            call.respond(repository.technicians(call.companyId()))
+        }
     }
 
     post("/api/sync") {

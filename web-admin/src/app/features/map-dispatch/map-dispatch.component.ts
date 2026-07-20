@@ -11,6 +11,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { Subscription } from 'rxjs';
 import * as L from 'leaflet';
 import { WorkOrderService } from '../../core/services/work-order.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Technician, WorkOrder } from '../../core/models/work-order.model';
 
 /**
@@ -34,16 +35,19 @@ import { Technician, WorkOrder } from '../../core/models/work-order.model';
         <ul>
           <li *ngFor="let t of technicians()">
             <span [class.off]="!t.available">{{ t.name }}</span>
-            <button *ngIf="selectedOrderId() && t.available" (click)="assign(t.id)">
+            <button *ngIf="canAssign() && selectedOrderId() && t.available" (click)="assign(t.id)">
               Asignar
             </button>
           </li>
         </ul>
-        <p *ngIf="selectedOrderId(); else hint">
+        <p *ngIf="!canAssign()" class="muted">
+          Tu rol ({{ role() }}) no puede asignar órdenes.
+        </p>
+        <p *ngIf="canAssign() && selectedOrderId(); else hint">
           Orden seleccionada: <b>{{ selectedOrderId() }}</b>
         </p>
         <ng-template #hint>
-          <p class="muted">Haz clic en un pin de orden 📍 para asignarla.</p>
+          <p *ngIf="canAssign()" class="muted">Haz clic en un pin de orden 📍 para asignarla.</p>
         </ng-template>
       </aside>
     </div>
@@ -69,9 +73,17 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
   @ViewChild('map') mapEl!: ElementRef<HTMLElement>;
 
   private readonly service = inject(WorkOrderService);
+  private readonly auth = inject(AuthService);
 
   readonly technicians = signal<Technician[]>([]);
   readonly selectedOrderId = signal<string | null>(null);
+
+  /** RBAC en el cliente: solo ADMIN/DISPATCHER asignan (el backend lo exige de todos modos). */
+  readonly role = () => this.auth.user()?.role ?? '—';
+  readonly canAssign = () => {
+    const r = this.auth.user()?.role;
+    return r === 'ADMIN' || r === 'DISPATCHER';
+  };
 
   private map!: L.Map;
   private readonly orderLayer = L.layerGroup();
@@ -90,13 +102,16 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
     // El contenedor se dimensiona tras el layout: recalcula el tamaño del mapa.
     setTimeout(() => this.map.invalidateSize(), 0);
 
-    this.subs.add(
-      this.service.getTechnicians().subscribe((techs) => {
-        this.technicians.set(techs);
-        this.renderTechnicians(techs);
-        this.renderOrders(this.lastOrders);
-      }),
-    );
+    // El endpoint de técnicos es solo ADMIN/DISPATCHER; no lo pidas si el rol no puede.
+    if (this.canAssign()) {
+      this.subs.add(
+        this.service.getTechnicians().subscribe((techs) => {
+          this.technicians.set(techs);
+          this.renderTechnicians(techs);
+          this.renderOrders(this.lastOrders);
+        }),
+      );
+    }
     this.subs.add(
       this.service.getWorkOrders().subscribe((orders) => {
         this.lastOrders = orders;

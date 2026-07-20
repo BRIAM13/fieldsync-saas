@@ -27,6 +27,15 @@ interface AuthRepository {
         passwordHash: String
     ): AuthResult
 
+    /** Crea un usuario con rol dentro de una empresa (usado por el admin). Null si el email existe. */
+    suspend fun createUser(
+        companyId: String,
+        name: String,
+        email: String,
+        passwordHash: String,
+        role: UserRole
+    ): User?
+
     /** Emite un refresh token para el usuario y lo persiste con su vencimiento. */
     suspend fun createRefreshToken(userId: String, expiresAtEpochMs: Long): String
 
@@ -48,9 +57,10 @@ class InMemoryAuthRepository : AuthRepository {
     init {
         val company = SeedData.company()
         companies[company.id] = company
-        val admin = SeedData.adminUser()
-        users[admin.email.lowercase()] =
-            UserRecord(admin, PasswordHasher.hash(SeedData.DEMO_ADMIN_PASSWORD))
+        SeedData.users().forEach { seed ->
+            users[seed.user.email.lowercase()] =
+                UserRecord(seed.user, PasswordHasher.hash(seed.password))
+        }
     }
 
     override suspend fun emailExists(email: String): Boolean =
@@ -79,6 +89,25 @@ class InMemoryAuthRepository : AuthRepository {
         )
         users[email.lowercase()] = UserRecord(user, passwordHash)
         AuthResult(company, user)
+    }
+
+    override suspend fun createUser(
+        companyId: String,
+        name: String,
+        email: String,
+        passwordHash: String,
+        role: UserRole
+    ): User? = mutex.withLock {
+        if (users.containsKey(email.lowercase())) return@withLock null
+        val user = User(
+            id = UUID.randomUUID().toString(),
+            companyId = companyId,
+            email = email.lowercase(),
+            name = name,
+            role = role
+        )
+        users[email.lowercase()] = UserRecord(user, passwordHash)
+        user
     }
 
     override suspend fun createRefreshToken(userId: String, expiresAtEpochMs: Long): String =

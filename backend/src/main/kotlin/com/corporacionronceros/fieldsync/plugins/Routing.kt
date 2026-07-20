@@ -4,6 +4,7 @@ import com.corporacionronceros.fieldsync.repository.AuthRepository
 import com.corporacionronceros.fieldsync.repository.WorkOrderRepository
 import com.corporacionronceros.fieldsync.routes.authRoutes
 import com.corporacionronceros.fieldsync.routes.trackingRoutes
+import com.corporacionronceros.fieldsync.routes.userRoutes
 import com.corporacionronceros.fieldsync.routes.workOrderRoutes
 import com.corporacionronceros.fieldsync.security.JwtService
 import com.corporacionronceros.fieldsync.tracking.TrackingService
@@ -28,9 +29,11 @@ fun Application.configureRouting(
         // Públicas
         authRoutes(authRepository, jwtService)
 
-        // Protegidas: exigen un JWT válido; el tenant se resuelve del token
+        // Protegidas: exigen un JWT válido; el tenant se resuelve del token, y cada
+        // ruta aplica sus propios roles (RBAC) donde corresponde.
         authenticate(AUTH_JWT) {
             workOrderRoutes(repository)
+            userRoutes(authRepository)
         }
 
         // WebSocket: valida el token por query param dentro de la ruta

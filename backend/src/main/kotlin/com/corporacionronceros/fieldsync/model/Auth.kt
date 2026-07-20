@@ -31,6 +31,15 @@ data class RegisterRequest(
 @Serializable
 data class LoginRequest(val email: String, val password: String)
 
+/** El ADMIN de una empresa crea usuarios (dispatcher/técnico) dentro de su tenant. */
+@Serializable
+data class CreateUserRequest(
+    val name: String,
+    val email: String,
+    val password: String,
+    val role: UserRole
+)
+
 /** Renovar el access token con un refresh token válido. */
 @Serializable
 data class RefreshRequest(val refreshToken: String)

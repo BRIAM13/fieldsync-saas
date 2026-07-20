@@ -19,7 +19,7 @@ import java.util.UUID
 /** Empresas + usuarios respaldados en Postgres (Exposed). */
 class ExposedAuthRepository : AuthRepository {
 
-    /** Siembra la empresa demo + su admin si no existen (FK: primero la empresa). */
+    /** Siembra la empresa demo + sus usuarios (admin/dispatcher/técnico) si no existen. */
     suspend fun seedIfEmpty() = dbQuery {
         if (CompaniesTable.selectAll().empty()) {
             val company = SeedData.company()
@@ -27,16 +27,38 @@ class ExposedAuthRepository : AuthRepository {
                 it[id] = company.id
                 it[name] = company.name
             }
-            val admin = SeedData.adminUser()
-            UsersTable.insert {
-                it[id] = admin.id
-                it[companyId] = admin.companyId
-                it[email] = admin.email.lowercase()
-                it[name] = admin.name
-                it[role] = admin.role.name
-                it[passwordHash] = PasswordHasher.hash(SeedData.DEMO_ADMIN_PASSWORD)
+            SeedData.users().forEach { seed ->
+                UsersTable.insert {
+                    it[id] = seed.user.id
+                    it[companyId] = seed.user.companyId
+                    it[email] = seed.user.email.lowercase()
+                    it[name] = seed.user.name
+                    it[role] = seed.user.role.name
+                    it[passwordHash] = PasswordHasher.hash(seed.password)
+                }
             }
         }
+    }
+
+    override suspend fun createUser(
+        companyId: String,
+        name: String,
+        email: String,
+        passwordHash: String,
+        role: UserRole
+    ): User? = dbQuery {
+        val exists = UsersTable.selectAll().where { UsersTable.email eq email.lowercase() }.any()
+        if (exists) return@dbQuery null
+        val user = User(UUID.randomUUID().toString(), companyId, email.lowercase(), name, role)
+        UsersTable.insert {
+            it[id] = user.id
+            it[UsersTable.companyId] = user.companyId
+            it[UsersTable.email] = user.email
+            it[UsersTable.name] = user.name
+            it[UsersTable.role] = user.role.name
+            it[UsersTable.passwordHash] = passwordHash
+        }
+        user
     }
 
     override suspend fun emailExists(email: String): Boolean = dbQuery {

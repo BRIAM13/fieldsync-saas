@@ -21,6 +21,8 @@ Panel de despacho para el administrador/despachador. Asigna órdenes de trabajo 
 - Un **HTTP interceptor** adjunta el Bearer y, ante un **401**, renueva el token con `/auth/refresh`
   y reintenta la petición una vez; si el refresh falla, cierra la sesión.
 - Un **guard** (`authGuard`) protege `/dispatch` y `/orders` y redirige a `/login` sin sesión.
+- **RBAC en la UI**: el botón "Asignar" y la lista de técnicos solo aparecen para ADMIN/DISPATCHER
+  (el backend lo exige igual). Prueba con `dispatcher@fieldsync.dev` vs `tech@fieldsync.dev` (`demo1234`).
 
 ## Estructura
 
