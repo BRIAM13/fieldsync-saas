@@ -17,6 +17,7 @@ fun Application.configureCors() {
         allowMethod(HttpMethod.Patch)
         allowMethod(HttpMethod.Options)
         allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.Authorization)
         allowHost("localhost:4200")
         allowHost("localhost:8081") // Metro / Expo dev
         anyHost() // solo desarrollo — acotar en producción

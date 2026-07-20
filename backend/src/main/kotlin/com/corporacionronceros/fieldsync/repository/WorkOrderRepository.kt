@@ -8,67 +8,74 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
- * Puerto de persistencia de órdenes. Definido como interfaz para poder sustituir la
- * implementación en memoria por una respaldada en base de datos (Exposed + Postgres)
- * sin tocar las rutas.
+ * Puerto de persistencia de órdenes, **con conciencia de tenant**: toda operación recibe el
+ * `companyId` del portador del token, de modo que una empresa nunca ve ni modifica datos de otra.
+ * Definido como interfaz para poder cambiar la impl (memoria ↔ Postgres) sin tocar las rutas.
  */
 interface WorkOrderRepository {
-    suspend fun all(): List<WorkOrder>
-    suspend fun byId(id: String): WorkOrder?
-    suspend fun updateStatus(id: String, status: WorkOrderStatus): WorkOrder?
-    suspend fun assign(id: String, technicianId: String): WorkOrder?
-    suspend fun technicians(): List<Technician>
-    suspend fun applyPending(changes: List<PendingChange>): Pair<Int, List<String>>
+    suspend fun all(companyId: String): List<WorkOrder>
+    suspend fun byId(companyId: String, id: String): WorkOrder?
+    suspend fun updateStatus(companyId: String, id: String, status: WorkOrderStatus): WorkOrder?
+    suspend fun assign(companyId: String, id: String, technicianId: String): WorkOrder?
+    suspend fun technicians(companyId: String): List<Technician>
+    suspend fun applyPending(companyId: String, changes: List<PendingChange>): Pair<Int, List<String>>
 }
 
 /** Implementación en memoria, segura para concurrencia con un Mutex de coroutines. */
 class InMemoryWorkOrderRepository : WorkOrderRepository {
 
     private val mutex = Mutex()
-    private val store = linkedMapOf<String, WorkOrder>()
-    private val techs = SeedData.technicians()
+    private val orders = linkedMapOf<String, Pair<String, WorkOrder>>() // id -> (companyId, order)
+    private val techs = mutableListOf<Pair<String, Technician>>()        // (companyId, technician)
 
     init {
-        SeedData.orders().forEach { store[it.id] = it }
+        SeedData.technicians().forEach { techs += SeedData.DEMO_COMPANY_ID to it }
+        SeedData.orders().forEach { orders[it.id] = SeedData.DEMO_COMPANY_ID to it }
     }
 
-    override suspend fun all(): List<WorkOrder> = mutex.withLock { store.values.toList() }
+    override suspend fun all(companyId: String): List<WorkOrder> = mutex.withLock {
+        orders.values.filter { it.first == companyId }.map { it.second }
+    }
 
-    override suspend fun byId(id: String): WorkOrder? = mutex.withLock { store[id] }
+    override suspend fun byId(companyId: String, id: String): WorkOrder? = mutex.withLock {
+        orders[id]?.takeIf { it.first == companyId }?.second
+    }
 
-    override suspend fun technicians(): List<Technician> = techs
+    override suspend fun technicians(companyId: String): List<Technician> = mutex.withLock {
+        techs.filter { it.first == companyId }.map { it.second }
+    }
 
-    override suspend fun updateStatus(id: String, status: WorkOrderStatus): WorkOrder? =
+    override suspend fun updateStatus(companyId: String, id: String, status: WorkOrderStatus): WorkOrder? =
         mutex.withLock {
-            val current = store[id] ?: return@withLock null
-            val updated = current.copy(status = status)
-            store[id] = updated
+            val entry = orders[id]?.takeIf { it.first == companyId } ?: return@withLock null
+            val updated = entry.second.copy(status = status)
+            orders[id] = companyId to updated
             updated
         }
 
-    override suspend fun assign(id: String, technicianId: String): WorkOrder? =
+    override suspend fun assign(companyId: String, id: String, technicianId: String): WorkOrder? =
         mutex.withLock {
-            val current = store[id] ?: return@withLock null
-            if (techs.none { it.id == technicianId }) return@withLock null
-            val updated = current.copy(
+            val entry = orders[id]?.takeIf { it.first == companyId } ?: return@withLock null
+            val techInCompany = techs.any { it.first == companyId && it.second.id == technicianId }
+            if (!techInCompany) return@withLock null
+            val updated = entry.second.copy(
                 assignedTechnicianId = technicianId,
                 status = WorkOrderStatus.ASSIGNED
             )
-            store[id] = updated
+            orders[id] = companyId to updated
             updated
         }
 
-    /** Aplica en bloque los cambios pendientes; devuelve (aplicados, ids rechazados). */
-    override suspend fun applyPending(changes: List<PendingChange>): Pair<Int, List<String>> =
+    override suspend fun applyPending(companyId: String, changes: List<PendingChange>): Pair<Int, List<String>> =
         mutex.withLock {
             var applied = 0
             val rejected = mutableListOf<String>()
             for (change in changes) {
-                val current = store[change.id]
-                if (current == null) {
+                val entry = orders[change.id]?.takeIf { it.first == companyId }
+                if (entry == null) {
                     rejected += change.id
                 } else {
-                    store[change.id] = current.copy(status = change.status)
+                    orders[change.id] = companyId to entry.second.copy(status = change.status)
                     applied++
                 }
             }

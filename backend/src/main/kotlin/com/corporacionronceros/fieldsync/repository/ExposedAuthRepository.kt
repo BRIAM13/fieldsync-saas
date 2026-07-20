@@ -1,0 +1,95 @@
+package com.corporacionronceros.fieldsync.repository
+
+import com.corporacionronceros.fieldsync.db.CompaniesTable
+import com.corporacionronceros.fieldsync.db.UsersTable
+import com.corporacionronceros.fieldsync.model.Company
+import com.corporacionronceros.fieldsync.model.User
+import com.corporacionronceros.fieldsync.model.UserRole
+import com.corporacionronceros.fieldsync.security.PasswordHasher
+import kotlinx.coroutines.Dispatchers
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import java.util.UUID
+
+/** Empresas + usuarios respaldados en Postgres (Exposed). */
+class ExposedAuthRepository : AuthRepository {
+
+    /** Siembra la empresa demo + su admin si no existen (FK: primero la empresa). */
+    suspend fun seedIfEmpty() = dbQuery {
+        if (CompaniesTable.selectAll().empty()) {
+            val company = SeedData.company()
+            CompaniesTable.insert {
+                it[id] = company.id
+                it[name] = company.name
+            }
+            val admin = SeedData.adminUser()
+            UsersTable.insert {
+                it[id] = admin.id
+                it[companyId] = admin.companyId
+                it[email] = admin.email.lowercase()
+                it[name] = admin.name
+                it[role] = admin.role.name
+                it[passwordHash] = PasswordHasher.hash(SeedData.DEMO_ADMIN_PASSWORD)
+            }
+        }
+    }
+
+    override suspend fun emailExists(email: String): Boolean = dbQuery {
+        UsersTable.selectAll().where { UsersTable.email eq email.lowercase() }.any()
+    }
+
+    override suspend fun findByEmail(email: String): UserRecord? = dbQuery {
+        UsersTable.selectAll().where { UsersTable.email eq email.lowercase() }
+            .singleOrNull()?.toUserRecord()
+    }
+
+    override suspend fun companyById(id: String): Company? = dbQuery {
+        CompaniesTable.selectAll().where { CompaniesTable.id eq id }.singleOrNull()
+            ?.let { Company(it[CompaniesTable.id], it[CompaniesTable.name]) }
+    }
+
+    override suspend fun createCompanyWithAdmin(
+        companyName: String,
+        name: String,
+        email: String,
+        passwordHash: String
+    ): AuthResult = dbQuery {
+        val company = Company(UUID.randomUUID().toString(), companyName)
+        CompaniesTable.insert {
+            it[id] = company.id
+            it[CompaniesTable.name] = company.name
+        }
+        val user = User(
+            id = UUID.randomUUID().toString(),
+            companyId = company.id,
+            email = email.lowercase(),
+            name = name,
+            role = UserRole.ADMIN
+        )
+        UsersTable.insert {
+            it[id] = user.id
+            it[companyId] = user.companyId
+            it[UsersTable.email] = user.email
+            it[UsersTable.name] = user.name
+            it[role] = user.role.name
+            it[UsersTable.passwordHash] = passwordHash
+        }
+        AuthResult(company, user)
+    }
+
+    private fun ResultRow.toUserRecord(): UserRecord = UserRecord(
+        user = User(
+            id = this[UsersTable.id],
+            companyId = this[UsersTable.companyId],
+            email = this[UsersTable.email],
+            name = this[UsersTable.name],
+            role = UserRole.valueOf(this[UsersTable.role])
+        ),
+        passwordHash = this[UsersTable.passwordHash]
+    )
+
+    private suspend fun <T> dbQuery(block: suspend () -> T): T =
+        newSuspendedTransaction(Dispatchers.IO) { block() }
+}

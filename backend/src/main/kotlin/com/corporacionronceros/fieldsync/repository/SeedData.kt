@@ -1,13 +1,30 @@
 package com.corporacionronceros.fieldsync.repository
 
+import com.corporacionronceros.fieldsync.model.Company
 import com.corporacionronceros.fieldsync.model.GeoPoint
 import com.corporacionronceros.fieldsync.model.Priority
 import com.corporacionronceros.fieldsync.model.Technician
+import com.corporacionronceros.fieldsync.model.User
+import com.corporacionronceros.fieldsync.model.UserRole
 import com.corporacionronceros.fieldsync.model.WorkOrder
 import com.corporacionronceros.fieldsync.model.WorkOrderStatus
 
-/** Datos de arranque compartidos por las implementaciones en memoria y en Postgres. */
+/** Datos de arranque compartidos: una empresa demo con su admin, órdenes y técnicos. */
 object SeedData {
+
+    const val DEMO_COMPANY_ID = "demo-co"
+    const val DEMO_ADMIN_EMAIL = "admin@fieldsync.dev"
+    const val DEMO_ADMIN_PASSWORD = "demo1234"
+
+    fun company() = Company(DEMO_COMPANY_ID, "Servicios Demo SAC")
+
+    fun adminUser() = User(
+        id = "u-admin",
+        companyId = DEMO_COMPANY_ID,
+        email = DEMO_ADMIN_EMAIL,
+        name = "Admin Demo",
+        role = UserRole.ADMIN
+    )
 
     fun orders(): List<WorkOrder> {
         val now = System.currentTimeMillis()

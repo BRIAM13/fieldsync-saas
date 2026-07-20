@@ -36,6 +36,11 @@ dependencies {
     implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-websockets-jvm:$ktor_version")
 
+    // Autenticación JWT + hashing de contraseñas (BCrypt)
+    implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktor_version")
+    implementation("at.favre.lib:bcrypt:0.10.2")
+
     // Persistencia: Exposed (ORM/DSL Kotlin) + driver Postgres + pool Hikari
     implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")

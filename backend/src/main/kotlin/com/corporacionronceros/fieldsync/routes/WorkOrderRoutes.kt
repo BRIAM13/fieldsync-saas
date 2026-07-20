@@ -6,6 +6,7 @@ import com.corporacionronceros.fieldsync.model.StatusUpdateRequest
 import com.corporacionronceros.fieldsync.model.SyncRequest
 import com.corporacionronceros.fieldsync.model.SyncResponse
 import com.corporacionronceros.fieldsync.repository.WorkOrderRepository
+import com.corporacionronceros.fieldsync.security.companyId
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -15,19 +16,20 @@ import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
-/** Rutas REST de órdenes de trabajo, montadas bajo /api. */
+/**
+ * Rutas REST de órdenes, montadas bajo /api DENTRO de un bloque `authenticate`.
+ * Cada operación se resuelve al tenant del token vía `call.companyId()` — aislamiento multi-tenant.
+ */
 fun Route.workOrderRoutes(repository: WorkOrderRepository) {
     route("/api/work-orders") {
 
-        // Listado completo
         get {
-            call.respond(repository.all())
+            call.respond(repository.all(call.companyId()))
         }
 
-        // Una orden por id
         get("/{id}") {
             val id = call.parameters["id"]!!
-            val order = repository.byId(id)
+            val order = repository.byId(call.companyId(), id)
             if (order == null) {
                 call.respond(HttpStatusCode.NotFound, ApiError("Orden $id no encontrada"))
             } else {
@@ -35,11 +37,10 @@ fun Route.workOrderRoutes(repository: WorkOrderRepository) {
             }
         }
 
-        // Cambio de estado
         patch("/{id}/status") {
             val id = call.parameters["id"]!!
             val body = call.receive<StatusUpdateRequest>()
-            val updated = repository.updateStatus(id, body.status)
+            val updated = repository.updateStatus(call.companyId(), id, body.status)
             if (updated == null) {
                 call.respond(HttpStatusCode.NotFound, ApiError("Orden $id no encontrada"))
             } else {
@@ -47,11 +48,10 @@ fun Route.workOrderRoutes(repository: WorkOrderRepository) {
             }
         }
 
-        // Asignación de la orden a un técnico (usado por el panel de despacho Angular)
         patch("/{id}/assignment") {
             val id = call.parameters["id"]!!
             val body = call.receive<AssignmentRequest>()
-            val updated = repository.assign(id, body.technicianId)
+            val updated = repository.assign(call.companyId(), id, body.technicianId)
             if (updated == null) {
                 call.respond(
                     HttpStatusCode.NotFound,
@@ -63,15 +63,13 @@ fun Route.workOrderRoutes(repository: WorkOrderRepository) {
         }
     }
 
-    // Técnicos disponibles para asignar
     get("/api/technicians") {
-        call.respond(repository.technicians())
+        call.respond(repository.technicians(call.companyId()))
     }
 
-    // Sincronización en bloque de cambios pendientes (espejo del offline-first de Android)
     post("/api/sync") {
         val request = call.receive<SyncRequest>()
-        val (applied, rejected) = repository.applyPending(request.changes)
+        val (applied, rejected) = repository.applyPending(call.companyId(), request.changes)
         call.respond(SyncResponse(synced = applied, rejected = rejected))
     }
 }

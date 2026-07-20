@@ -4,11 +4,16 @@ import com.corporacionronceros.fieldsync.db.DatabaseFactory
 import com.corporacionronceros.fieldsync.plugins.configureCors
 import com.corporacionronceros.fieldsync.plugins.configureMonitoring
 import com.corporacionronceros.fieldsync.plugins.configureRouting
+import com.corporacionronceros.fieldsync.plugins.configureSecurity
 import com.corporacionronceros.fieldsync.plugins.configureSerialization
 import com.corporacionronceros.fieldsync.plugins.configureSockets
+import com.corporacionronceros.fieldsync.repository.AuthRepository
+import com.corporacionronceros.fieldsync.repository.ExposedAuthRepository
 import com.corporacionronceros.fieldsync.repository.ExposedWorkOrderRepository
+import com.corporacionronceros.fieldsync.repository.InMemoryAuthRepository
 import com.corporacionronceros.fieldsync.repository.InMemoryWorkOrderRepository
 import com.corporacionronceros.fieldsync.repository.WorkOrderRepository
+import com.corporacionronceros.fieldsync.security.JwtService
 import com.corporacionronceros.fieldsync.tracking.TrackingService
 import io.ktor.server.application.Application
 import io.ktor.server.application.log
@@ -25,19 +30,28 @@ fun main() {
 
 /** Ensamblado de la aplicación: instala plugins e inyecta las dependencias a las rutas. */
 fun Application.module() {
-    // Postgres si hay DATABASE_URL; si no, repositorio en memoria (desarrollo sin DB).
-    val repository: WorkOrderRepository = if (DatabaseFactory.init()) {
+    val jwtService = JwtService.fromEnv()
+
+    // Postgres si hay DATABASE_URL; si no, repositorios en memoria (desarrollo sin DB).
+    val authRepository: AuthRepository
+    val workOrderRepository: WorkOrderRepository
+    if (DatabaseFactory.init()) {
         log.info("Persistencia: Postgres (Exposed)")
-        ExposedWorkOrderRepository().also { runBlocking { it.seedIfEmpty() } }
+        val auth = ExposedAuthRepository().also { runBlocking { it.seedIfEmpty() } }
+        val work = ExposedWorkOrderRepository().also { runBlocking { it.seedIfEmpty() } }
+        authRepository = auth
+        workOrderRepository = work
     } else {
         log.info("Persistencia: en memoria (sin DATABASE_URL)")
-        InMemoryWorkOrderRepository()
+        authRepository = InMemoryAuthRepository()
+        workOrderRepository = InMemoryWorkOrderRepository()
     }
     val trackingService = TrackingService()
 
     configureSerialization()
     configureSockets()
     configureCors()
+    configureSecurity(jwtService)
     configureMonitoring()
-    configureRouting(repository, trackingService)
+    configureRouting(workOrderRepository, authRepository, trackingService, jwtService)
 }
