@@ -20,6 +20,13 @@ object UsersTable : Table("users") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object RefreshTokensTable : Table("refresh_tokens") {
+    val token = varchar("token", 64)
+    val userId = varchar("user_id", 36).references(UsersTable.id)
+    val expiresAtEpochMs = long("expires_at_epoch_ms")
+    override val primaryKey = PrimaryKey(token)
+}
+
 object WorkOrdersTable : Table("work_orders") {
     val id = varchar("id", 32)
     val companyId = varchar("company_id", 36).references(CompaniesTable.id).index()

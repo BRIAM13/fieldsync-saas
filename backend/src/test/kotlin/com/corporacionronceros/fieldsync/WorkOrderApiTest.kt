@@ -2,6 +2,7 @@ package com.corporacionronceros.fieldsync
 
 import com.corporacionronceros.fieldsync.model.AuthResponse
 import com.corporacionronceros.fieldsync.model.LoginRequest
+import com.corporacionronceros.fieldsync.model.RefreshRequest
 import com.corporacionronceros.fieldsync.model.RegisterRequest
 import com.corporacionronceros.fieldsync.model.StatusUpdateRequest
 import com.corporacionronceros.fieldsync.model.WorkOrder
@@ -73,6 +74,31 @@ class WorkOrderApiTest {
             setBody(StatusUpdateRequest(WorkOrderStatus.IN_PROGRESS))
         }.body()
         assertEquals(WorkOrderStatus.IN_PROGRESS, updated.status)
+    }
+
+    @Test
+    fun `refresh issues a new access token and rotates the refresh token`() = testApplication {
+        application { module() }
+        val client = jsonClient()
+
+        val login: AuthResponse = client.post("/auth/login") {
+            contentType(ContentType.Application.Json)
+            setBody(LoginRequest(SeedData.DEMO_ADMIN_EMAIL, SeedData.DEMO_ADMIN_PASSWORD))
+        }.body()
+
+        // Renovar con el refresh token → nuevo access token que autoriza la API.
+        val refreshed: AuthResponse = client.post("/auth/refresh") {
+            contentType(ContentType.Application.Json)
+            setBody(RefreshRequest(login.refreshToken))
+        }.body()
+        assertEquals(HttpStatusCode.OK,
+            client.get("/api/work-orders") { bearerAuth(refreshed.token) }.status)
+
+        // El refresh token viejo ya no sirve (rotación).
+        assertEquals(HttpStatusCode.Unauthorized, client.post("/auth/refresh") {
+            contentType(ContentType.Application.Json)
+            setBody(RefreshRequest(login.refreshToken))
+        }.status)
     }
 
     @Test

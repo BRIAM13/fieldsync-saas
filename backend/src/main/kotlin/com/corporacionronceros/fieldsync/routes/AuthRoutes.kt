@@ -3,18 +3,22 @@ package com.corporacionronceros.fieldsync.routes
 import com.corporacionronceros.fieldsync.model.ApiError
 import com.corporacionronceros.fieldsync.model.AuthResponse
 import com.corporacionronceros.fieldsync.model.LoginRequest
+import com.corporacionronceros.fieldsync.model.LogoutRequest
+import com.corporacionronceros.fieldsync.model.RefreshRequest
 import com.corporacionronceros.fieldsync.model.RegisterRequest
+import com.corporacionronceros.fieldsync.model.User
 import com.corporacionronceros.fieldsync.repository.AuthRepository
 import com.corporacionronceros.fieldsync.security.JwtService
 import com.corporacionronceros.fieldsync.security.PasswordHasher
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
-/** Rutas públicas de autenticación: registro (crea empresa + admin) e inicio de sesión. */
+/** Rutas públicas de autenticación: registro, login, refresh y logout. */
 fun Route.authRoutes(authRepository: AuthRepository, jwtService: JwtService) {
     route("/auth") {
 
@@ -31,8 +35,7 @@ fun Route.authRoutes(authRepository: AuthRepository, jwtService: JwtService) {
             }
             val hash = PasswordHasher.hash(req.password)
             val result = authRepository.createCompanyWithAdmin(req.companyName, req.name, req.email, hash)
-            val token = jwtService.generateToken(result.user)
-            call.respond(HttpStatusCode.Created, AuthResponse(token, result.user, result.company))
+            call.respondWithTokens(authRepository, jwtService, result.user, HttpStatusCode.Created)
         }
 
         post("/login") {
@@ -42,13 +45,41 @@ fun Route.authRoutes(authRepository: AuthRepository, jwtService: JwtService) {
                 call.respond(HttpStatusCode.Unauthorized, ApiError("Credenciales inválidas"))
                 return@post
             }
-            val company = authRepository.companyById(record.user.companyId)
-            if (company == null) {
-                call.respond(HttpStatusCode.InternalServerError, ApiError("Empresa no encontrada"))
+            call.respondWithTokens(authRepository, jwtService, record.user, HttpStatusCode.OK)
+        }
+
+        post("/refresh") {
+            val req = call.receive<RefreshRequest>()
+            val user = authRepository.consumeRefreshToken(req.refreshToken)
+            if (user == null) {
+                call.respond(HttpStatusCode.Unauthorized, ApiError("Refresh token inválido o expirado"))
                 return@post
             }
-            val token = jwtService.generateToken(record.user)
-            call.respond(AuthResponse(token, record.user, company))
+            call.respondWithTokens(authRepository, jwtService, user, HttpStatusCode.OK)
+        }
+
+        post("/logout") {
+            val req = call.receive<LogoutRequest>()
+            authRepository.revokeRefreshToken(req.refreshToken)
+            call.respond(HttpStatusCode.NoContent)
         }
     }
+}
+
+/** Emite un access token + un refresh token nuevo (rotación) y responde con ambos. */
+private suspend fun ApplicationCall.respondWithTokens(
+    authRepository: AuthRepository,
+    jwtService: JwtService,
+    user: User,
+    status: HttpStatusCode
+) {
+    val company = authRepository.companyById(user.companyId)
+    if (company == null) {
+        respond(HttpStatusCode.InternalServerError, ApiError("Empresa no encontrada"))
+        return
+    }
+    val accessToken = jwtService.generateAccessToken(user)
+    val expiresAt = System.currentTimeMillis() + jwtService.refreshValidityMs
+    val refreshToken = authRepository.createRefreshToken(user.id, expiresAt)
+    respond(status, AuthResponse(accessToken, refreshToken, user, company))
 }

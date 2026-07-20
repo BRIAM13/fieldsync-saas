@@ -31,6 +31,22 @@ data class RegisterRequest(
 @Serializable
 data class LoginRequest(val email: String, val password: String)
 
-/** Respuesta de /auth/login y /auth/register: el token + a quién representa. */
+/** Renovar el access token con un refresh token válido. */
 @Serializable
-data class AuthResponse(val token: String, val user: User, val company: Company)
+data class RefreshRequest(val refreshToken: String)
+
+/** Cerrar sesión: revoca el refresh token. */
+@Serializable
+data class LogoutRequest(val refreshToken: String)
+
+/**
+ * Respuesta de /auth/login, /auth/register y /auth/refresh.
+ * `token` es el access token (corto); `refreshToken` es el de larga duración (rotado en cada refresh).
+ */
+@Serializable
+data class AuthResponse(
+    val token: String,
+    val refreshToken: String,
+    val user: User,
+    val company: Company
+)

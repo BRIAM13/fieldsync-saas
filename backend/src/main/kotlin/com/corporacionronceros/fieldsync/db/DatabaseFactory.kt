@@ -34,7 +34,9 @@ object DatabaseFactory {
 
         Database.connect(HikariDataSource(hikari))
         transaction {
-            SchemaUtils.create(CompaniesTable, UsersTable, WorkOrdersTable, TechniciansTable)
+            SchemaUtils.create(
+                CompaniesTable, UsersTable, RefreshTokensTable, WorkOrdersTable, TechniciansTable
+            )
         }
         return true
     }

@@ -1,13 +1,16 @@
 package com.corporacionronceros.fieldsync.repository
 
 import com.corporacionronceros.fieldsync.db.CompaniesTable
+import com.corporacionronceros.fieldsync.db.RefreshTokensTable
 import com.corporacionronceros.fieldsync.db.UsersTable
 import com.corporacionronceros.fieldsync.model.Company
 import com.corporacionronceros.fieldsync.model.User
 import com.corporacionronceros.fieldsync.model.UserRole
 import com.corporacionronceros.fieldsync.security.PasswordHasher
+import com.corporacionronceros.fieldsync.security.RefreshTokenGenerator
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -77,6 +80,29 @@ class ExposedAuthRepository : AuthRepository {
             it[UsersTable.passwordHash] = passwordHash
         }
         AuthResult(company, user)
+    }
+
+    override suspend fun createRefreshToken(userId: String, expiresAtEpochMs: Long): String = dbQuery {
+        val token = RefreshTokenGenerator.generate()
+        RefreshTokensTable.insert {
+            it[RefreshTokensTable.token] = token
+            it[RefreshTokensTable.userId] = userId
+            it[RefreshTokensTable.expiresAtEpochMs] = expiresAtEpochMs
+        }
+        token
+    }
+
+    override suspend fun consumeRefreshToken(token: String): User? = dbQuery {
+        val row = RefreshTokensTable.selectAll()
+            .where { RefreshTokensTable.token eq token }.singleOrNull() ?: return@dbQuery null
+        RefreshTokensTable.deleteWhere { RefreshTokensTable.token eq token } // rotación
+        if (row[RefreshTokensTable.expiresAtEpochMs] < System.currentTimeMillis()) return@dbQuery null
+        val userId = row[RefreshTokensTable.userId]
+        UsersTable.selectAll().where { UsersTable.id eq userId }.singleOrNull()?.toUserRecord()?.user
+    }
+
+    override suspend fun revokeRefreshToken(token: String) {
+        dbQuery { RefreshTokensTable.deleteWhere { RefreshTokensTable.token eq token } }
     }
 
     private fun ResultRow.toUserRecord(): UserRecord = UserRecord(
