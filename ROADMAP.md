@@ -108,8 +108,12 @@ Esta es la sección que traduce el proyecto en **argumentos de entrevista**. Cad
 - [ ] Pantalla de seguimiento en tiempo real del técnico.
 
 ### Fase 4 — Backend real y sincronización
-- [ ] API REST/tiempo real que una las tres apps.
-- [ ] Estrategia de sincronización y resolución de conflictos offline.
+- [x] API REST en **Ktor** (Kotlin) que une las tres apps: órdenes + sync + health.
+- [x] Canal en **tiempo real** (WebSocket) para el seguimiento del técnico.
+- [x] CORS, logging, errores JSON uniformes, tests de integración (test-host de Ktor).
+- [ ] Persistencia en base de datos (Exposed + Postgres) — hoy repositorio en memoria (interfaz lista).
+- [ ] Apuntar los clientes (Android/Angular/RN) a la API real (cambio de baseUrl).
+- [ ] Resolución de conflictos de sincronización (last-write-wins → estrategia por campo).
 
 ### Fase 5 — Marketing (HyperFrames)
 - [x] Video promocional 15–30 s que simula la UI y resalta las 3 características clave.

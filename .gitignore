@@ -8,6 +8,11 @@ android-app/.idea/
 *.aab
 *.keystore
 
+# ─── Backend / Ktor ───
+backend/.gradle/
+backend/build/
+backend/local.properties
+
 # ─── Angular / web-admin ───
 web-admin/node_modules/
 web-admin/dist/

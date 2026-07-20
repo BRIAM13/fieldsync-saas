@@ -29,6 +29,7 @@ Tres aplicaciones sobre un modelo de dominio común:
 | [`android-app/`](android-app/) | Técnico en la calle | **Kotlin** · Clean Arch + MVVM · Compose · Room · WorkManager | Recibe, ejecuta y cierra órdenes **offline-first** |
 | [`web-admin/`](web-admin/) | Despachador / admin | **Angular 18** · TypeScript · RxJS | Asigna tareas sobre un mapa |
 | [`client-app/`](client-app/) | Cliente final | **React Native** (Expo) | Sigue a su técnico **en tiempo real** |
+| [`backend/`](backend/) | — (API compartida) | **Ktor** · Kotlin · WebSockets | Conecta las tres apps: REST + tiempo real |
 | [`marketing/`](marketing/) | — | **HyperFrames** (HTML/CSS/GSAP) | Video promocional → MP4 |
 
 ### Las 3 características clave (una por tecnología)
@@ -36,6 +37,22 @@ Tres aplicaciones sobre un modelo de dominio común:
 1. **Asignación inteligente en mapas** → panel *Angular*
 2. **Sincronización offline-first** → *Android · Room + Coroutines/Flow + WorkManager*
 3. **Seguimiento en tiempo real** → app cliente *React Native*
+
+### El ecosistema conectado
+
+```mermaid
+flowchart LR
+    subgraph clients["Clientes"]
+        A["📱 Android<br/>(técnico)"]
+        W["🖥️ Angular<br/>(despacho)"]
+        C["📲 React Native<br/>(cliente)"]
+    end
+    B["⚙️ Backend Ktor<br/>REST + WebSocket"]
+
+    A -- "REST / sync offline-first" --> B
+    W -- "REST (órdenes)" --> B
+    B -- "WebSocket (posición + ETA)" --> C
+```
 
 ---
 
@@ -103,6 +120,7 @@ sequenceDiagram
 | **Coroutines & Flow** | data → domain → presentation | Asincronía estructurada, streams reactivos de Room a la UI |
 | **MVVM + Clean Architecture** | `android-app` | Separación de capas, inversión de dependencias, testabilidad |
 | **WorkManager** | `data/sync` | Sincronización real en 2.º plano con restricción de red + backoff |
+| **Ktor (backend Kotlin)** | `backend` | Kotlin *end-to-end*: API REST + WebSockets con Coroutines |
 | **MVP (legacy)** | `history/` | Comprensión de arquitecturas heredadas y su migración a MVVM |
 | **Jetpack Compose** | `presentation` | UI declarativa, estado unidireccional, Navigation Compose |
 | **Angular + TypeScript** | `web-admin` | Routing lazy, servicios inyectables, tipado estricto |
@@ -128,6 +146,15 @@ emulador o dispositivo. Tests unitarios:
 cd android-app
 ./gradlew testDebugUnitTest
 ```
+
+### Backend (Ktor · Kotlin) — API compartida
+Requiere JDK 17 o 21.
+```bash
+cd backend
+gradle run         # → http://localhost:8080/health
+gradle test        # tests de integración de la API
+```
+Contrato completo de endpoints en [`backend/README.md`](backend/README.md).
 
 ### App cliente (React Native)
 ```bash
