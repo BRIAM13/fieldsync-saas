@@ -1,0 +1,35 @@
+# Levanta Postgres + el backend FieldSync juntos para desarrollo local:
+#   docker compose up --build
+# El backend queda en http://localhost:8080 conectado a la DB del contenedor.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fieldsync
+      POSTGRES_PASSWORD: fieldsync
+      POSTGRES_DB: fieldsync
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fieldsync"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/fieldsync
+      DB_USER: fieldsync
+      DB_PASSWORD: fieldsync
+      PORT: "8080"
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

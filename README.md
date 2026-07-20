@@ -121,6 +121,7 @@ sequenceDiagram
 | **MVVM + Clean Architecture** | `android-app` | Separación de capas, inversión de dependencias, testabilidad |
 | **WorkManager** | `data/sync` | Sincronización real en 2.º plano con restricción de red + backoff |
 | **Ktor (backend Kotlin)** | `backend` | Kotlin *end-to-end*: API REST + WebSockets con Coroutines |
+| **PostgreSQL + Exposed** | `backend/db` | Persistencia real, DSL tipado, transacciones suspend; Docker + deploy |
 | **MVP (legacy)** | `history/` | Comprensión de arquitecturas heredadas y su migración a MVVM |
 | **Jetpack Compose** | `presentation` | UI declarativa, estado unidireccional, Navigation Compose |
 | **Angular + TypeScript** | `web-admin` | Routing lazy, servicios inyectables, tipado estricto |

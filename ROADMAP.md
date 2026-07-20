@@ -113,8 +113,10 @@ Esta es la sección que traduce el proyecto en **argumentos de entrevista**. Cad
 - [x] CORS, logging, errores JSON uniformes, tests de integración (test-host de Ktor).
 - [x] Clientes conectados a la API real: Android (Ktor client), Angular (HttpClient), RN (WebSocket).
 - [x] Backend extendido: técnicos, asignación y ubicación para el panel de despacho.
-- [ ] Persistencia en base de datos (Exposed + Postgres) — hoy repositorio en memoria (interfaz lista).
+- [x] Persistencia **Postgres + Exposed** (Hikari), seleccionable por `DATABASE_URL`; repo en memoria como fallback.
+- [x] Listo para desplegar: Dockerfile + docker-compose + guía Neon/Render.
 - [ ] Resolución de conflictos de sincronización (last-write-wins → estrategia por campo).
+- [ ] Autenticación (JWT) y multi-tenancy por empresa.
 
 ### Fase 5 — Marketing (HyperFrames)
 - [x] Video promocional 15–30 s que simula la UI y resalta las 3 características clave.
