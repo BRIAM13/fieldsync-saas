@@ -134,6 +134,7 @@ sequenceDiagram
 | **MVP (legacy)** | `history/` | Comprensión de arquitecturas heredadas y su migración a MVVM |
 | **Jetpack Compose** | `presentation` | UI declarativa, estado unidireccional, Navigation Compose |
 | **Angular + TypeScript** | `web-admin` | Routing lazy, servicios inyectables, tipado estricto |
+| **Leaflet (mapas)** | `web-admin/map-dispatch` | Mapa interactivo real (OpenStreetMap), marcadores + asignación |
 | **React Native** | `client-app` | Móvil multiplataforma; criterio nativo vs. cross-platform |
 
 Detalle completo por fases en [`ROADMAP.md`](ROADMAP.md).

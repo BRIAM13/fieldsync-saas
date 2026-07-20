@@ -1,70 +1,113 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
+import { NgFor, NgIf } from '@angular/common';
+import { Subscription } from 'rxjs';
+import * as L from 'leaflet';
 import { WorkOrderService } from '../../core/services/work-order.service';
-import { Technician } from '../../core/models/work-order.model';
+import { Technician, WorkOrder } from '../../core/models/work-order.model';
 
 /**
- * Asignación inteligente en mapa (característica clave #1).
+ * Asignación inteligente en mapa (característica clave #1) con **Leaflet + OpenStreetMap**.
  *
- * En producción el <div class="map"> hospedaría Leaflet/Google Maps con marcadores
- * por orden y técnico. Aquí se representa el lienzo del mapa y el flujo de asignación:
- * seleccionar una orden sin asignar → elegir técnico → el servicio emite el nuevo estado.
+ * Dibuja marcadores reales de órdenes y técnicos sobre un mapa interactivo. Al hacer clic en
+ * una orden se selecciona; se le asigna el técnico disponible elegido y se traza la línea
+ * orden → técnico. Los datos vienen del backend (WorkOrderService).
  */
 @Component({
   selector: 'fs-map-dispatch',
   standalone: true,
-  imports: [NgFor, NgIf, AsyncPipe],
+  imports: [NgFor, NgIf],
   template: `
     <h2>Asignación en mapa</h2>
     <div class="layout">
-      <div class="map">
-        <span class="map-hint">🗺️ Lienzo del mapa (Leaflet / Google Maps)</span>
-        <div class="pin" *ngFor="let o of (orders$ | async)"
-             [style.left.%]="pinX(o.location?.lng)" [style.top.%]="pinY(o.location?.lat)"
-             [class.assigned]="o.status !== 'UNASSIGNED'"
-             (click)="select(o.id)">📍</div>
-      </div>
+      <div #map class="map"></div>
 
       <aside class="panel">
         <h3>Técnicos</h3>
         <ul>
           <li *ngFor="let t of technicians()">
             <span [class.off]="!t.available">{{ t.name }}</span>
-            <button *ngIf="selectedOrderId() && t.available"
-                    (click)="assign(t.id)">Asignar</button>
+            <button *ngIf="selectedOrderId() && t.available" (click)="assign(t.id)">
+              Asignar
+            </button>
           </li>
         </ul>
-        <p *ngIf="selectedOrderId()">Orden seleccionada: <b>{{ selectedOrderId() }}</b></p>
+        <p *ngIf="selectedOrderId(); else hint">
+          Orden seleccionada: <b>{{ selectedOrderId() }}</b>
+        </p>
+        <ng-template #hint>
+          <p class="muted">Haz clic en un pin de orden 📍 para asignarla.</p>
+        </ng-template>
       </aside>
     </div>
   `,
   styles: [`
     .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
-    .map { position: relative; height: 420px; background: #0b1220;
-           border: 1px solid #334155; border-radius: 8px; overflow: hidden; }
-    .map-hint { position: absolute; top: 12px; left: 12px; color: #64748b; font-size: 13px; }
-    .pin { position: absolute; cursor: pointer; font-size: 20px; transform: translate(-50%, -100%); }
-    .pin.assigned { filter: grayscale(1) opacity(.5); }
+    .map { height: 460px; border-radius: 8px; overflow: hidden; border: 1px solid #334155; }
     .panel { background: var(--fs-surface); border-radius: 8px; padding: 16px; }
-    .panel li { display: flex; justify-content: space-between; padding: 6px 0; }
+    .panel li { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
     .off { color: #64748b; text-decoration: line-through; }
+    .muted { color: #64748b; font-size: 13px; }
     button { background: var(--fs-primary); color: #fff; border: 0; border-radius: 6px;
              padding: 4px 10px; cursor: pointer; }
+    /* Marcadores (divIcon) */
+    :host ::ng-deep .fs-pin {
+      font-size: 22px; line-height: 22px; text-align: center;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,.4));
+    }
+    :host ::ng-deep .fs-pin.assigned { opacity: .5; }
   `],
 })
-export class MapDispatchComponent implements OnInit {
+export class MapDispatchComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('map') mapEl!: ElementRef<HTMLElement>;
+
   private readonly service = inject(WorkOrderService);
 
-  readonly orders$ = this.service.getWorkOrders();
   readonly technicians = signal<Technician[]>([]);
   readonly selectedOrderId = signal<string | null>(null);
 
-  ngOnInit(): void {
-    this.service.getTechnicians().subscribe((t) => this.technicians.set(t));
+  private map!: L.Map;
+  private readonly orderLayer = L.layerGroup();
+  private readonly techLayer = L.layerGroup();
+  private lastOrders: WorkOrder[] = [];
+  private subs = new Subscription();
+
+  ngAfterViewInit(): void {
+    this.map = L.map(this.mapEl.nativeElement, { center: [-12.06, -77.03], zoom: 12 });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+      maxZoom: 19,
+    }).addTo(this.map);
+    this.orderLayer.addTo(this.map);
+    this.techLayer.addTo(this.map);
+    // El contenedor se dimensiona tras el layout: recalcula el tamaño del mapa.
+    setTimeout(() => this.map.invalidateSize(), 0);
+
+    this.subs.add(
+      this.service.getTechnicians().subscribe((techs) => {
+        this.technicians.set(techs);
+        this.renderTechnicians(techs);
+        this.renderOrders(this.lastOrders);
+      }),
+    );
+    this.subs.add(
+      this.service.getWorkOrders().subscribe((orders) => {
+        this.lastOrders = orders;
+        this.renderOrders(orders);
+      }),
+    );
   }
 
-  select(orderId: string): void {
-    this.selectedOrderId.set(orderId);
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+    this.map?.remove();
   }
 
   assign(technicianId: string): void {
@@ -74,11 +117,53 @@ export class MapDispatchComponent implements OnInit {
     this.selectedOrderId.set(null);
   }
 
-  // Proyección lineal simple lng/lat → % del lienzo (placeholder del mapa real).
-  pinX(lng: number | undefined): number {
-    return lng == null ? 50 : ((lng + 77.06) / 0.08) * 100;
+  private pinIcon(emoji: string, assigned: boolean): L.DivIcon {
+    return L.divIcon({
+      className: `fs-pin${assigned ? ' assigned' : ''}`,
+      html: emoji,
+      iconSize: [24, 24],
+      iconAnchor: [12, 22],
+    });
   }
-  pinY(lat: number | undefined): number {
-    return lat == null ? 50 : ((-12.13 - lat) / -0.1) * 100;
+
+  private renderOrders(orders: WorkOrder[]): void {
+    if (!this.map) return;
+    this.orderLayer.clearLayers();
+    const techById = new Map(this.technicians().map((t) => [t.id, t]));
+
+    for (const order of orders) {
+      if (!order.location) continue;
+      const assigned = order.status !== 'UNASSIGNED';
+      L.marker([order.location.lat, order.location.lng], {
+        icon: this.pinIcon('📍', assigned),
+      })
+        .bindPopup(`<b>${order.title}</b><br>${order.customerName}<br>${order.status}`)
+        .on('click', () => this.selectedOrderId.set(order.id))
+        .addTo(this.orderLayer);
+
+      // Línea orden → técnico asignado.
+      const tech = order.assignedTechnicianId ? techById.get(order.assignedTechnicianId) : undefined;
+      if (order.location && tech) {
+        L.polyline(
+          [
+            [order.location.lat, order.location.lng],
+            [tech.location.lat, tech.location.lng],
+          ],
+          { color: '#2563eb', weight: 2, dashArray: '6 6' },
+        ).addTo(this.orderLayer);
+      }
+    }
+  }
+
+  private renderTechnicians(techs: Technician[]): void {
+    if (!this.map) return;
+    this.techLayer.clearLayers();
+    for (const tech of techs) {
+      L.marker([tech.location.lat, tech.location.lng], {
+        icon: this.pinIcon('🔧', !tech.available),
+      })
+        .bindPopup(`<b>${tech.name}</b><br>${tech.available ? 'Disponible' : 'Ocupado'}`)
+        .addTo(this.techLayer);
+    }
   }
 }

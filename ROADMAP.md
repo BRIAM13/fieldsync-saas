@@ -99,9 +99,9 @@ Esta es la sección que traduce el proyecto en **argumentos de entrevista**. Cad
 - [x] Tests: ordenamiento, use case de sync, y ViewModel (StateFlow + Turbine + coroutines-test).
 
 ### Fase 2 — Panel de despacho (Angular)
-- [ ] Proyecto Angular + routing.
-- [ ] `WorkOrderService` (API simulada).
-- [ ] Vista de asignación sobre mapa.
+- [x] Proyecto Angular + routing.
+- [x] `WorkOrderService` conectado al backend real (HttpClient).
+- [x] Vista de asignación sobre **mapa real (Leaflet + OpenStreetMap)** con marcadores y línea de asignación.
 
 ### Fase 3 — App Cliente (React Native)
 - [ ] Scaffold RN.

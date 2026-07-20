@@ -8,6 +8,7 @@ Panel de despacho para el administrador/despachador. Asigna órdenes de trabajo 
 - **Rutas** con carga diferida (lazy) por feature
 - **RxJS** + **Signals** para estado reactivo
 - **`HttpClient` conectado al backend real** (Ktor, `http://localhost:8080`) — órdenes, técnicos y asignación
+- **Leaflet + OpenStreetMap** — mapa interactivo real con marcadores de órdenes y técnicos
 
 > **Requiere el backend corriendo** (`cd ../backend && gradle run`). El `WorkOrderService`
 > consulta `GET /api/work-orders` y `/api/technicians`, y asigna con `PATCH .../assignment`.
@@ -27,7 +28,7 @@ src/app/
 │   ├── models/    work-order.model.ts   (tipos compartidos)
 │   └── services/  work-order.service.ts (API simulada, Observables)
 ├── features/
-│   ├── map-dispatch/   asignación inteligente en mapa  ← característica clave #1
+│   ├── map-dispatch/   mapa Leaflet + asignación inteligente  ← característica clave #1
 │   └── work-orders/    listado de órdenes
 ├── app.component.ts    shell + navegación
 ├── app.routes.ts       rutas lazy
