@@ -11,7 +11,13 @@ Panel de despacho para el administrador/despachador. Asigna órdenes de trabajo 
 
 > **Requiere el backend corriendo** (`cd ../backend && gradle run`). El `WorkOrderService`
 > consulta `GET /api/work-orders` y `/api/technicians`, y asigna con `PATCH .../assignment`.
-> La URL base está en la constante `API_BASE` de `work-order.service.ts`.
+> La URL base está en `core/api.config.ts`.
+
+### Autenticación
+
+- **Login** en `/login` (demo: `admin@fieldsync.dev` / `demo1234`) → `AuthService` guarda el JWT.
+- Un **HTTP interceptor** (`authInterceptor`) adjunta `Authorization: Bearer <token>` a la API.
+- Un **guard** (`authGuard`) protege `/dispatch` y `/orders` y redirige a `/login` sin sesión.
 
 ## Estructura
 

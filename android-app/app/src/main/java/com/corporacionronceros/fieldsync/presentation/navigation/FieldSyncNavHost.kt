@@ -7,13 +7,24 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.corporacionronceros.fieldsync.presentation.auth.LoginScreen
 import com.corporacionronceros.fieldsync.presentation.detail.TaskDetailScreen
 import com.corporacionronceros.fieldsync.presentation.tasks.TasksScreen
 
-/** Grafo de navegación de la app: lista de órdenes → detalle de una orden. */
+/** Grafo de navegación: login → lista de órdenes → detalle de una orden. */
 @Composable
 fun FieldSyncNavHost(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = Screen.Tasks.route) {
+    NavHost(navController = navController, startDestination = Screen.Login.route) {
+
+        composable(Screen.Login.route) {
+            LoginScreen(
+                onLoggedIn = {
+                    navController.navigate(Screen.Tasks.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         composable(Screen.Tasks.route) {
             TasksScreen(
@@ -29,7 +40,6 @@ fun FieldSyncNavHost(navController: NavHostController = rememberNavController())
                 type = NavType.StringType
             })
         ) {
-            // El ViewModel lee el argumento vía SavedStateHandle (Hilt lo provee).
             TaskDetailScreen(onBack = { navController.popBackStack() })
         }
     }

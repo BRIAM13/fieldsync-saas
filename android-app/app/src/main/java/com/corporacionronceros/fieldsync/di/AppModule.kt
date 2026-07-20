@@ -2,18 +2,24 @@ package com.corporacionronceros.fieldsync.di
 
 import android.content.Context
 import androidx.room.Room
+import com.corporacionronceros.fieldsync.data.auth.TokenStore
 import com.corporacionronceros.fieldsync.data.connectivity.NetworkMonitor
 import com.corporacionronceros.fieldsync.data.connectivity.NetworkMonitorImpl
 import com.corporacionronceros.fieldsync.data.local.room.FieldSyncDatabase
 import com.corporacionronceros.fieldsync.data.local.room.WorkOrderDao
+import com.corporacionronceros.fieldsync.data.repository.AuthRepositoryImpl
 import com.corporacionronceros.fieldsync.data.repository.WorkOrderRepositoryImpl
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import com.corporacionronceros.fieldsync.data.sync.SyncScheduler
 import com.corporacionronceros.fieldsync.data.sync.SyncSchedulerImpl
+import com.corporacionronceros.fieldsync.domain.repository.AuthRepository
 import com.corporacionronceros.fieldsync.domain.repository.WorkOrderRepository
 import dagger.Binds
 import dagger.Module
@@ -38,9 +44,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideHttpClient(): HttpClient = HttpClient(OkHttp) {
+    fun provideHttpClient(tokenStore: TokenStore): HttpClient = HttpClient(OkHttp) {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
+        }
+        // Adjunta el JWT en cada petición (se evalúa por request, token dinámico).
+        install(DefaultRequest) {
+            tokenStore.token?.let { header(HttpHeaders.Authorization, "Bearer $it") }
         }
     }
 }
@@ -53,6 +63,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindWorkOrderRepository(impl: WorkOrderRepositoryImpl): WorkOrderRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
 
     @Binds
     @Singleton

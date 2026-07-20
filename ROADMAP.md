@@ -115,8 +115,10 @@ Esta es la sección que traduce el proyecto en **argumentos de entrevista**. Cad
 - [x] Backend extendido: técnicos, asignación y ubicación para el panel de despacho.
 - [x] Persistencia **Postgres + Exposed** (Hikari), seleccionable por `DATABASE_URL`; repo en memoria como fallback.
 - [x] Listo para desplegar: Dockerfile + docker-compose + guía Neon/Render.
+- [x] **Autenticación JWT + multi-tenancy** por empresa (BCrypt, aislamiento por tenant, tests).
+- [x] Login cableado en los 3 clientes: Angular (interceptor+guard), Android (TokenStore+Bearer+login), RN (login+WS token).
 - [ ] Resolución de conflictos de sincronización (last-write-wins → estrategia por campo).
-- [ ] Autenticación (JWT) y multi-tenancy por empresa.
+- [ ] Persistencia del token en cliente (DataStore/EncryptedPrefs) y refresh tokens.
 
 ### Fase 5 — Marketing (HyperFrames)
 - [x] Video promocional 15–30 s que simula la UI y resalta las 3 características clave.

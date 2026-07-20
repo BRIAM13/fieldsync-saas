@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTechnicianTracking } from '../services/TrackingService';
+import { login } from '../services/AuthService';
 
 /**
  * Pantalla que ve el cliente final: sigue a su técnico en tiempo real y ve el ETA.
- * Consume el hook useTechnicianTracking (stream simulado) y se re-renderiza en cada tick.
+ * Se autentica al montar (obtiene el JWT) y abre el WebSocket autorizado del backend.
  */
 export default function TrackingScreen() {
-  const position = useTechnicianTracking('WO-1042');
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    login('admin@fieldsync.dev', 'demo1234')
+      .then(setToken)
+      .catch((e) => console.warn('No se pudo iniciar sesión', e));
+  }, []);
+
+  const position = useTechnicianTracking('WO-1042', token);
 
   return (
     <View style={styles.container}>

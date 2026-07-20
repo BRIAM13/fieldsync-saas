@@ -122,6 +122,7 @@ sequenceDiagram
 | **WorkManager** | `data/sync` | Sincronización real en 2.º plano con restricción de red + backoff |
 | **Ktor (backend Kotlin)** | `backend` | Kotlin *end-to-end*: API REST + WebSockets con Coroutines |
 | **PostgreSQL + Exposed** | `backend/db` | Persistencia real, DSL tipado, transacciones suspend; Docker + deploy |
+| **JWT + multi-tenancy** | `backend/security` | Auth con BCrypt + JWT; datos aislados por empresa (tenant) en toda la API |
 | **MVP (legacy)** | `history/` | Comprensión de arquitecturas heredadas y su migración a MVVM |
 | **Jetpack Compose** | `presentation` | UI declarativa, estado unidireccional, Navigation Compose |
 | **Angular + TypeScript** | `web-admin` | Routing lazy, servicios inyectables, tipado estricto |
@@ -133,8 +134,8 @@ Detalle completo por fases en [`ROADMAP.md`](ROADMAP.md).
 
 ## Cómo ejecutar cada parte
 
-> **Los tres clientes consumen el backend real.** Para ver datos en vivo, levanta primero el
-> backend (`cd backend && gradle run`, en `:8080`) y luego el cliente que quieras.
+> **Los tres clientes consumen el backend real** (con login JWT). Levanta primero el backend
+> (`cd backend && gradle run`, en `:8080`) y luego el cliente. Cuenta demo: **admin@fieldsync.dev / demo1234**.
 
 ### Panel web (Angular) — lo más rápido de ver
 ```bash

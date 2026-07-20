@@ -11,6 +11,9 @@ App móvil multiplataforma para el **cliente final**. Muestra el **seguimiento d
 > **Requiere el backend corriendo** (`cd ../backend && gradle run`). La URL base está en
 > `src/config.ts` (`10.0.2.2` para el emulador Android, `localhost` para iOS Simulator).
 
+La pantalla se **autentica al montar** (`AuthService.login`) para obtener el JWT, y lo pasa al
+WebSocket como query param (`?token=…`), que el backend exige antes de emitir posiciones.
+
 ## Por qué está en el portafolio
 
 Demuestra **versatilidad móvil**: entiendo tanto el desarrollo **nativo** (la app de técnicos en Kotlin) como el **multiplataforma** (esta app en React Native), y sé argumentar cuándo conviene cada uno.

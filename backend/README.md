@@ -41,18 +41,34 @@ La elección es **por variable de entorno**, en `Application.module()`:
 lo exponen **Neon / Supabase / Render**) o `jdbc:postgresql://...` con `DB_USER` / `DB_PASSWORD`.
 Las tablas (`work_orders`, `technicians`) se definen con el DSL tipado de Exposed en `db/Tables.kt`.
 
+## Autenticación (JWT) y multi-tenancy
+
+Toda la API de negocio exige un **JWT** (`Authorization: Bearer <token>`). El token lleva el
+`companyId`, y **cada consulta se aísla por empresa** (tenant): una empresa nunca ve datos de otra.
+
+- `POST /auth/register` → crea una **empresa nueva + su usuario admin**, devuelve token.
+- `POST /auth/login` → devuelve token + usuario + empresa.
+
+**Cuenta demo** (sembrada al arrancar): `admin@fieldsync.dev` / `demo1234`.
+
+- Contraseñas hasheadas con **BCrypt** (nunca en claro).
+- Secreto/emisor/audiencia del JWT por entorno (`JWT_SECRET`, `JWT_ISSUER`, `JWT_AUDIENCE`).
+- El WebSocket recibe el token como **query param** (`?token=…`), ya que no admite headers.
+
 ## API
 
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| `GET` | `/health` | Estado del servicio |
-| `GET` | `/api/work-orders` | Lista todas las órdenes |
-| `GET` | `/api/work-orders/{id}` | Una orden por id (404 si no existe) |
-| `PATCH` | `/api/work-orders/{id}/status` | Cambia el estado. Body: `{ "status": "IN_PROGRESS" }` |
-| `PATCH` | `/api/work-orders/{id}/assignment` | Asigna a un técnico. Body: `{ "technicianId": "T-01" }` |
-| `GET` | `/api/technicians` | Técnicos disponibles para asignar |
-| `POST` | `/api/sync` | Aplica cambios pendientes en bloque (offline-first). Body: `{ "changes": [{ "id": "WO-1042", "status": "COMPLETED" }] }` → `{ "synced": 1, "rejected": [] }` |
-| `WS` | `/ws/tracking/{orderId}` | Stream en tiempo real de la posición del técnico + ETA |
+| Método | Ruta | Auth | Descripción |
+|--------|------|:----:|-------------|
+| `POST` | `/auth/register` | — | Crea empresa + admin → token |
+| `POST` | `/auth/login` | — | Login → token |
+| `GET` | `/health` | — | Estado del servicio |
+| `GET` | `/api/work-orders` | 🔒 | Órdenes de **mi** empresa |
+| `GET` | `/api/work-orders/{id}` | 🔒 | Una orden (404 si no es mía o no existe) |
+| `PATCH` | `/api/work-orders/{id}/status` | 🔒 | Cambia el estado. Body: `{ "status": "IN_PROGRESS" }` |
+| `PATCH` | `/api/work-orders/{id}/assignment` | 🔒 | Asigna a un técnico. Body: `{ "technicianId": "T-01" }` |
+| `GET` | `/api/technicians` | 🔒 | Técnicos de mi empresa |
+| `POST` | `/api/sync` | 🔒 | Aplica cambios pendientes en bloque (offline-first) |
+| `WS` | `/ws/tracking/{orderId}?token=JWT` | 🔒 | Stream en tiempo real de posición + ETA |
 
 ### Cómo conecta las tres apps (ya cableadas, no stubs)
 
@@ -81,11 +97,13 @@ cd backend
 docker compose up --build     # levanta Postgres + backend, conectados
 ```
 
-Prueba rápida:
+Prueba rápida (login → usar el token):
 ```bash
-curl http://localhost:8080/api/work-orders
-curl -X PATCH http://localhost:8080/api/work-orders/WO-1042/status \
-     -H "Content-Type: application/json" -d '{"status":"IN_PROGRESS"}'
+TOKEN=$(curl -s -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@fieldsync.dev","password":"demo1234"}' | jq -r .token)
+
+curl http://localhost:8080/api/work-orders -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Desplegar gratis (portafolio)
@@ -108,3 +126,6 @@ Combinación sin costo para demos: **Neon** (Postgres) + **Render** (servidor).
 | `DB_USER` / `DB_PASSWORD` | — | Solo si usas `DATABASE_URL` en formato `jdbc:` |
 | `PORT` | `8080` | El host suele inyectarla |
 | `DB_POOL_SIZE` | `5` | Tamaño del pool Hikari (opcional) |
+| `JWT_SECRET` | `un-secreto-largo-y-aleatorio` | **Cámbialo en producción** |
+| `JWT_ISSUER` / `JWT_AUDIENCE` | `fieldsync` / `fieldsync-clients` | Opcionales |
+| `JWT_VALIDITY_MS` | `604800000` | Vigencia del token (7 días por defecto) |

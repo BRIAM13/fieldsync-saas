@@ -2,9 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Technician, WorkOrder } from '../models/work-order.model';
-
-/** URL base del backend Ktor (ver backend/). En producción vendría de environment. */
-const API_BASE = 'http://localhost:8080';
+import { API_BASE } from '../api.config';
 
 /**
  * Servicio de órdenes de trabajo **conectado al backend real** (Ktor) vía HttpClient.

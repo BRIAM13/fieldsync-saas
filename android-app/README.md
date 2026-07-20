@@ -36,11 +36,15 @@ La regla de oro: **las dependencias apuntan hacia adentro**. `domain` no importa
 5. `SyncWorkOrdersWorker` (`@HiltWorker`, `CoroutineWorker`) ejecuta `syncPendingChanges()`
    en segundo plano y devuelve `retry()` ante fallo para que WorkManager reintente.
 
-## Navegación
+## Navegación y autenticación
 
-`Single-Activity` + **Navigation Compose**: lista de órdenes (`TasksScreen`) → detalle
-(`TaskDetailScreen`). El `TaskDetailViewModel` lee el `orderId` del `SavedStateHandle`
-(argumento de ruta) y observa esa orden reactivamente; desde ahí se cambia el estado.
+`Single-Activity` + **Navigation Compose**: **login** (`LoginScreen`) → lista de órdenes
+(`TasksScreen`) → detalle (`TaskDetailScreen`). El `TaskDetailViewModel` lee el `orderId` del
+`SavedStateHandle` y observa esa orden reactivamente.
+
+El login (demo: `admin@fieldsync.dev` / `demo1234`) guarda el JWT en `TokenStore`, y el
+`HttpClient` de Ktor adjunta `Authorization: Bearer <token>` en cada petición (evaluado por
+request, token dinámico). `AuthRepository` mantiene el dominio ajeno a Ktor.
 
 ## Testabilidad (por qué la arquitectura importa)
 
