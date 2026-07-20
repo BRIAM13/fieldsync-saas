@@ -68,9 +68,6 @@ flowchart TD
     VM -->|reconexión| WM
     NET -->|online| VM
     WM --> REPO
-
-    classDef d fill:#1e2bfa20,stroke:#1e2bfa;
-    class domain d;
 ```
 
 Las dependencias **apuntan hacia adentro**: `domain` no conoce Android, Room ni Compose,
