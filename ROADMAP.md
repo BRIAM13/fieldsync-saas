@@ -112,16 +112,20 @@ Esta es la sección que traduce el proyecto en **argumentos de entrevista**. Cad
 - [ ] Estrategia de sincronización y resolución de conflictos offline.
 
 ### Fase 5 — Marketing (HyperFrames)
-- [ ] Video promocional 15–30 s que simula la UI y resalta las 3 características clave.
-- [ ] Render a MP4 para LinkedIn / portafolio.
+- [x] Video promocional 15–30 s que simula la UI y resalta las 3 características clave.
+- [x] Render a MP4 para LinkedIn / portafolio.
 
 ### Fase 6 — Pulido de portafolio
-- [ ] README con capturas y GIFs por app.
-- [ ] Tests unitarios (JUnit + Turbine para `Flow`).
-- [ ] Diagrama de arquitectura.
+- [x] README raíz con overview, mapa del monorepo y tabla tecnología→competencia.
+- [x] Diagrama de arquitectura (Clean Architecture + flujo offline-first, Mermaid).
+- [x] Tests unitarios (JUnit + Turbine para `Flow`, ViewModels con coroutines-test).
+- [x] CI con GitHub Actions (tests Android + build Angular).
+- [ ] Capturas / GIFs por app en los README.
 
 ---
 
 ## 6. Estado actual
 
-**Fase 0 en curso.** Estructura de carpetas creada; este roadmap sirve como validación del plan antes de generar los esqueletos de código y el material de marketing.
+**Fases 0–3, 5 y buena parte de la 6 completas.** Las tres apps tienen su esqueleto real
+(Android profundizado con navegación, WorkManager y tests), el video promocional está renderizado,
+y el repo tiene README con arquitectura + CI. Siguiente gran hito: **Fase 4 (backend real)**.
