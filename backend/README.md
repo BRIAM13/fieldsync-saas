@@ -35,18 +35,20 @@ base de datos (Exposed + Postgres) sin tocar las rutas.
 | `GET` | `/api/work-orders` | Lista todas las órdenes |
 | `GET` | `/api/work-orders/{id}` | Una orden por id (404 si no existe) |
 | `PATCH` | `/api/work-orders/{id}/status` | Cambia el estado. Body: `{ "status": "IN_PROGRESS" }` |
+| `PATCH` | `/api/work-orders/{id}/assignment` | Asigna a un técnico. Body: `{ "technicianId": "T-01" }` |
+| `GET` | `/api/technicians` | Técnicos disponibles para asignar |
 | `POST` | `/api/sync` | Aplica cambios pendientes en bloque (offline-first). Body: `{ "changes": [{ "id": "WO-1042", "status": "COMPLETED" }] }` → `{ "synced": 1, "rejected": [] }` |
 | `WS` | `/ws/tracking/{orderId}` | Stream en tiempo real de la posición del técnico + ETA |
 
-### Cómo conecta las tres apps
+### Cómo conecta las tres apps (ya cableadas, no stubs)
 
-- **Android** (`WorkOrderApi`) → `GET /api/work-orders` y `POST /api/sync` (el flujo offline-first
-  del dispositivo empuja aquí sus cambios pendientes vía WorkManager).
-- **Angular** (`WorkOrderService`) → `GET`/`PATCH` de órdenes para el panel de despacho.
-- **React Native** (`TrackingService`) → el WebSocket `/ws/tracking/{orderId}` para el seguimiento en vivo.
+- **Android** (`WorkOrderApi`, **Ktor client**) → `GET /api/work-orders` y `PATCH /{id}/status`
+  (el flujo offline-first del dispositivo empuja los cambios vía WorkManager). Base URL: `http://10.0.2.2:8080`.
+- **Angular** (`WorkOrderService`, **HttpClient**) → `GET` órdenes/técnicos, `PATCH` asignación en el panel. Base URL: `http://localhost:8080`.
+- **React Native** (`TrackingService`, **WebSocket**) → `/ws/tracking/{orderId}` para el seguimiento en vivo. Base URL: `ws://10.0.2.2:8080` (Android) / `ws://localhost:8080` (iOS).
 
-> Hoy cada cliente usa un stub local con estos mismos contratos; apuntarlos a este backend es un
-> cambio de URL base (ver los `TODO: baseUrl` en cada servicio cliente).
+> Las URLs base están centralizadas: `ApiConfig` (Android), la constante `API_BASE`
+> (`work-order.service.ts` en Angular) y `config.ts` (React Native).
 
 ## Ejecutar
 

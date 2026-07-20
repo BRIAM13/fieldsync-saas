@@ -2,6 +2,10 @@ package com.corporacionronceros.fieldsync.model
 
 import kotlinx.serialization.Serializable
 
+/** Punto geográfico (para el mapa de despacho del panel Angular). */
+@Serializable
+data class GeoPoint(val lat: Double, val lng: Double)
+
 /** Contrato JSON de una orden de trabajo. Refleja el modelo de dominio de la app Android. */
 @Serializable
 data class WorkOrder(
@@ -11,14 +15,29 @@ data class WorkOrder(
     val address: String,
     val priority: Priority,
     val status: WorkOrderStatus,
-    val scheduledAtEpochMs: Long
+    val scheduledAtEpochMs: Long,
+    val location: GeoPoint? = null,
+    val assignedTechnicianId: String? = null
 )
 
 @Serializable
 enum class Priority { LOW, MEDIUM, HIGH, URGENT }
 
 @Serializable
-enum class WorkOrderStatus { ASSIGNED, IN_PROGRESS, ON_HOLD, COMPLETED, CANCELLED }
+enum class WorkOrderStatus { UNASSIGNED, ASSIGNED, IN_PROGRESS, ON_HOLD, COMPLETED, CANCELLED }
+
+/** Técnico de campo disponible para asignación. */
+@Serializable
+data class Technician(
+    val id: String,
+    val name: String,
+    val location: GeoPoint,
+    val available: Boolean
+)
+
+/** Cuerpo de PATCH /api/work-orders/{id}/assignment */
+@Serializable
+data class AssignmentRequest(val technicianId: String)
 
 /** Cuerpo de PATCH /api/work-orders/{id}/status */
 @Serializable

@@ -5,7 +5,11 @@ App móvil multiplataforma para el **cliente final**. Muestra el **seguimiento d
 ## Stack
 
 - **React Native** (Expo) + **TypeScript**
-- Hook `useTechnicianTracking` — encapsula el stream en tiempo real (WebSocket/Firebase en producción; simulado aquí)
+- Hook `useTechnicianTracking` — abre un **WebSocket real** al backend Ktor
+  (`ws://.../ws/tracking/{orderId}`) y actualiza la posición del técnico con cada mensaje
+
+> **Requiere el backend corriendo** (`cd ../backend && gradle run`). La URL base está en
+> `src/config.ts` (`10.0.2.2` para el emulador Android, `localhost` para iOS Simulator).
 
 ## Por qué está en el portafolio
 

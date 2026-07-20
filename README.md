@@ -132,6 +132,9 @@ Detalle completo por fases en [`ROADMAP.md`](ROADMAP.md).
 
 ## Cómo ejecutar cada parte
 
+> **Los tres clientes consumen el backend real.** Para ver datos en vivo, levanta primero el
+> backend (`cd backend && gradle run`, en `:8080`) y luego el cliente que quieras.
+
 ### Panel web (Angular) — lo más rápido de ver
 ```bash
 cd web-admin

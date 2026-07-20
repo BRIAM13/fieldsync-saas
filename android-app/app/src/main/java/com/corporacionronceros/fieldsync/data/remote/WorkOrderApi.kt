@@ -1,42 +1,49 @@
 package com.corporacionronceros.fieldsync.data.remote
 
-import kotlinx.coroutines.delay
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.patch
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import kotlinx.serialization.Serializable
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/** DTO tal como lo devolvería el backend REST. */
+/** DTO tal como lo devuelve el backend Ktor (campos alineados con su JSON). */
+@Serializable
 data class WorkOrderDto(
     val id: String,
     val title: String,
-    val customer: String,
+    val customerName: String,
     val address: String,
     val priority: String,
     val status: String,
-    val scheduledAt: Long
+    val scheduledAtEpochMs: Long
 )
 
+@Serializable
+private data class StatusUpdateRequest(val status: String)
+
 /**
- * API remota SIMULADA. En producción sería una interfaz Retrofit con `suspend fun`.
- * Aquí devolvemos datos de ejemplo tras una latencia falsa para poder ejecutar la app
- * sin backend y demostrar el flujo offline-first de punta a punta.
+ * Cliente REST del backend FieldSync, escrito con **Ktor client** (Kotlin end-to-end).
+ * Reemplaza al stub simulado: ahora habla de verdad con el servidor.
  */
-class WorkOrderApi {
+@Singleton
+class WorkOrderApi @Inject constructor(
+    private val client: HttpClient
+) {
+    suspend fun fetchWorkOrders(): List<WorkOrderDto> =
+        client.get("${ApiConfig.BASE_URL}/api/work-orders").body()
 
-    suspend fun fetchWorkOrders(): List<WorkOrderDto> {
-        delay(600) // simula latencia de red
-        return sampleOrders
-    }
-
-    /** Devuelve true si el backend aceptó el cambio. */
+    /** Empuja un cambio de estado (PATCH). Devuelve true si el backend lo aceptó. */
     suspend fun pushStatus(id: String, status: String): Boolean {
-        delay(300)
-        return true
+        val response = client.patch("${ApiConfig.BASE_URL}/api/work-orders/$id/status") {
+            contentType(ContentType.Application.Json)
+            setBody(StatusUpdateRequest(status))
+        }
+        return response.status.isSuccess()
     }
-
-    private val sampleOrders = listOf(
-        WorkOrderDto("WO-1042", "Fuga en tubería principal", "Ferretería El Sol",
-            "Av. Los Álamos 234", "URGENT", "ASSIGNED", System.currentTimeMillis() + 3_600_000),
-        WorkOrderDto("WO-1043", "Instalación de tablero eléctrico", "Condominio Las Palmas",
-            "Jr. Independencia 87", "HIGH", "ASSIGNED", System.currentTimeMillis() + 7_200_000),
-        WorkOrderDto("WO-1044", "Mantenimiento de calentador", "Sra. Quispe",
-            "Calle Lima 12", "MEDIUM", "ASSIGNED", System.currentTimeMillis() + 14_400_000),
-    )
 }

@@ -20,7 +20,7 @@ import { Technician } from '../../core/models/work-order.model';
       <div class="map">
         <span class="map-hint">🗺️ Lienzo del mapa (Leaflet / Google Maps)</span>
         <div class="pin" *ngFor="let o of (orders$ | async)"
-             [style.left.%]="pinX(o.location.lng)" [style.top.%]="pinY(o.location.lat)"
+             [style.left.%]="pinX(o.location?.lng)" [style.top.%]="pinY(o.location?.lat)"
              [class.assigned]="o.status !== 'UNASSIGNED'"
              (click)="select(o.id)">📍</div>
       </div>
@@ -75,6 +75,10 @@ export class MapDispatchComponent implements OnInit {
   }
 
   // Proyección lineal simple lng/lat → % del lienzo (placeholder del mapa real).
-  pinX(lng: number): number { return ((lng + 77.06) / 0.08) * 100; }
-  pinY(lat: number): number { return ((-12.13 - lat) / -0.1) * 100; }
+  pinX(lng: number | undefined): number {
+    return lng == null ? 50 : ((lng + 77.06) / 0.08) * 100;
+  }
+  pinY(lat: number | undefined): number {
+    return lat == null ? 50 : ((-12.13 - lat) / -0.1) * 100;
+  }
 }

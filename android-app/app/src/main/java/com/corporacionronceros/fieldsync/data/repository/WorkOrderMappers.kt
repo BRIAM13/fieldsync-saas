@@ -11,12 +11,12 @@ import com.corporacionronceros.fieldsync.domain.model.WorkOrderStatus
 fun WorkOrderDto.toEntity(pendingSync: Boolean = false) = WorkOrderEntity(
     id = id,
     title = title,
-    customerName = customer,
+    customerName = customerName,
     address = address,
     priority = priority,
     status = status,
     pendingSync = pendingSync,
-    scheduledAtEpochMs = scheduledAt
+    scheduledAtEpochMs = scheduledAtEpochMs
 )
 
 fun WorkOrderEntity.toDomain() = WorkOrder(

@@ -10,6 +10,7 @@
         android:allowBackup="true"
         android:label="FieldSync"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.FieldSync">
 
         <activity

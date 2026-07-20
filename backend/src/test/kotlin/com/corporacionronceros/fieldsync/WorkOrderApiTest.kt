@@ -1,6 +1,8 @@
 package com.corporacionronceros.fieldsync
 
+import com.corporacionronceros.fieldsync.model.AssignmentRequest
 import com.corporacionronceros.fieldsync.model.StatusUpdateRequest
+import com.corporacionronceros.fieldsync.model.Technician
 import com.corporacionronceros.fieldsync.model.WorkOrder
 import com.corporacionronceros.fieldsync.model.WorkOrderStatus
 import io.ktor.client.call.body
@@ -48,5 +50,28 @@ class WorkOrderApiTest {
         }.body()
 
         assertEquals(WorkOrderStatus.IN_PROGRESS, updated.status)
+    }
+
+    @Test
+    fun `lists technicians`() = testApplication {
+        application { module() }
+        val client = createClient { install(ContentNegotiation) { json() } }
+
+        val techs: List<Technician> = client.get("/api/technicians").body()
+        assertTrue(techs.any { it.id == "T-01" })
+    }
+
+    @Test
+    fun `assigning an order sets technician and status`() = testApplication {
+        application { module() }
+        val client = createClient { install(ContentNegotiation) { json() } }
+
+        val updated: WorkOrder = client.patch("/api/work-orders/WO-1043/assignment") {
+            contentType(ContentType.Application.Json)
+            setBody(AssignmentRequest("T-02"))
+        }.body()
+
+        assertEquals("T-02", updated.assignedTechnicianId)
+        assertEquals(WorkOrderStatus.ASSIGNED, updated.status)
     }
 }

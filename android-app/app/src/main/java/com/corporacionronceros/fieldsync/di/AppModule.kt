@@ -6,8 +6,12 @@ import com.corporacionronceros.fieldsync.data.connectivity.NetworkMonitor
 import com.corporacionronceros.fieldsync.data.connectivity.NetworkMonitorImpl
 import com.corporacionronceros.fieldsync.data.local.room.FieldSyncDatabase
 import com.corporacionronceros.fieldsync.data.local.room.WorkOrderDao
-import com.corporacionronceros.fieldsync.data.remote.WorkOrderApi
 import com.corporacionronceros.fieldsync.data.repository.WorkOrderRepositoryImpl
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 import com.corporacionronceros.fieldsync.data.sync.SyncScheduler
 import com.corporacionronceros.fieldsync.data.sync.SyncSchedulerImpl
 import com.corporacionronceros.fieldsync.domain.repository.WorkOrderRepository
@@ -34,7 +38,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideWorkOrderApi(): WorkOrderApi = WorkOrderApi()
+    fun provideHttpClient(): HttpClient = HttpClient(OkHttp) {
+        install(ContentNegotiation) {
+            json(Json { ignoreUnknownKeys = true })
+        }
+    }
 }
 
 /** Enlaza la interfaz del dominio con su implementación de datos (inversión de dependencias). */

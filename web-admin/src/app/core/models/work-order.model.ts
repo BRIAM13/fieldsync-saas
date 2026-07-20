@@ -19,8 +19,9 @@ export interface WorkOrder {
   title: string;
   customerName: string;
   address: string;
-  location: GeoPoint;
   priority: Priority;
   status: WorkOrderStatus;
-  assignedTechnicianId: string | null;
+  scheduledAtEpochMs: number;
+  location?: GeoPoint;
+  assignedTechnicianId?: string | null;
 }

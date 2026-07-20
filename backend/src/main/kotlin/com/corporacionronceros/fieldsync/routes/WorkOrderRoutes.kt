@@ -1,6 +1,7 @@
 package com.corporacionronceros.fieldsync.routes
 
 import com.corporacionronceros.fieldsync.model.ApiError
+import com.corporacionronceros.fieldsync.model.AssignmentRequest
 import com.corporacionronceros.fieldsync.model.StatusUpdateRequest
 import com.corporacionronceros.fieldsync.model.SyncRequest
 import com.corporacionronceros.fieldsync.model.SyncResponse
@@ -45,6 +46,26 @@ fun Route.workOrderRoutes(repository: WorkOrderRepository) {
                 call.respond(updated)
             }
         }
+
+        // Asignación de la orden a un técnico (usado por el panel de despacho Angular)
+        patch("/{id}/assignment") {
+            val id = call.parameters["id"]!!
+            val body = call.receive<AssignmentRequest>()
+            val updated = repository.assign(id, body.technicianId)
+            if (updated == null) {
+                call.respond(
+                    HttpStatusCode.NotFound,
+                    ApiError("Orden $id o técnico ${body.technicianId} no encontrado")
+                )
+            } else {
+                call.respond(updated)
+            }
+        }
+    }
+
+    // Técnicos disponibles para asignar
+    get("/api/technicians") {
+        call.respond(repository.technicians())
     }
 
     // Sincronización en bloque de cambios pendientes (espejo del offline-first de Android)

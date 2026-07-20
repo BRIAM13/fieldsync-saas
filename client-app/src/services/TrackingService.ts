@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { WS_BASE } from '../config';
 
 export interface TechnicianPosition {
   technicianId: string;
@@ -6,32 +7,49 @@ export interface TechnicianPosition {
   lat: number;
   lng: number;
   etaMinutes: number;
+  arrived: boolean;
+}
+
+/** Forma del mensaje JSON que emite el WebSocket del backend (/ws/tracking/{orderId}). */
+interface TechnicianLocationMessage {
+  orderId: string;
+  technicianId: string;
+  technicianName: string;
+  lat: number;
+  lng: number;
+  etaMinutes: number;
+  arrived: boolean;
 }
 
 /**
- * Servicio de seguimiento en tiempo real (característica clave #3).
+ * Seguimiento en tiempo real (característica clave #3) **conectado al backend real**.
  *
- * En producción abriría un WebSocket (o Firebase Realtime DB) hacia el backend.
- * Aquí lo simulamos con un intervalo que va acercando al técnico y reduciendo el ETA,
- * para que la pantalla del cliente muestre el movimiento sin backend.
+ * Abre un WebSocket al backend Ktor y actualiza la posición del técnico con cada mensaje.
+ * Antes era un intervalo simulado; ahora el stream viene del servidor.
  */
 export function useTechnicianTracking(orderId: string): TechnicianPosition | null {
   const [position, setPosition] = useState<TechnicianPosition | null>(null);
 
   useEffect(() => {
-    let lat = -12.09;
-    let lng = -77.05;
-    let eta = 18;
+    const socket = new WebSocket(`${WS_BASE}/ws/tracking/${orderId}`);
 
-    const id = setInterval(() => {
-      // Aproxima al destino del cliente y reduce el ETA (simula el stream en vivo).
-      lat += 0.0008;
-      lng += 0.0006;
-      eta = Math.max(0, eta - 1);
-      setPosition({ technicianId: 'T-01', name: 'Carlos Ramírez', lat, lng, etaMinutes: eta });
-    }, 2000);
+    socket.onmessage = (event) => {
+      const msg: TechnicianLocationMessage = JSON.parse(event.data);
+      setPosition({
+        technicianId: msg.technicianId,
+        name: msg.technicianName,
+        lat: msg.lat,
+        lng: msg.lng,
+        etaMinutes: msg.etaMinutes,
+        arrived: msg.arrived,
+      });
+    };
 
-    return () => clearInterval(id); // limpieza al desmontar (evita fugas)
+    socket.onerror = (e) => {
+      console.warn('Tracking WebSocket error', e);
+    };
+
+    return () => socket.close(); // cierra la conexión al desmontar (evita fugas)
   }, [orderId]);
 
   return position;

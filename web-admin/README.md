@@ -7,7 +7,11 @@ Panel de despacho para el administrador/despachador. Asigna órdenes de trabajo 
 - **Angular 18** (componentes standalone) + **TypeScript** en modo estricto
 - **Rutas** con carga diferida (lazy) por feature
 - **RxJS** + **Signals** para estado reactivo
-- Servicio de **API simulado** (`WorkOrderService`) — se sustituye por `HttpClient` sin tocar componentes
+- **`HttpClient` conectado al backend real** (Ktor, `http://localhost:8080`) — órdenes, técnicos y asignación
+
+> **Requiere el backend corriendo** (`cd ../backend && gradle run`). El `WorkOrderService`
+> consulta `GET /api/work-orders` y `/api/technicians`, y asigna con `PATCH .../assignment`.
+> La URL base está en la constante `API_BASE` de `work-order.service.ts`.
 
 ## Estructura
 

@@ -111,8 +111,9 @@ Esta es la sección que traduce el proyecto en **argumentos de entrevista**. Cad
 - [x] API REST en **Ktor** (Kotlin) que une las tres apps: órdenes + sync + health.
 - [x] Canal en **tiempo real** (WebSocket) para el seguimiento del técnico.
 - [x] CORS, logging, errores JSON uniformes, tests de integración (test-host de Ktor).
+- [x] Clientes conectados a la API real: Android (Ktor client), Angular (HttpClient), RN (WebSocket).
+- [x] Backend extendido: técnicos, asignación y ubicación para el panel de despacho.
 - [ ] Persistencia en base de datos (Exposed + Postgres) — hoy repositorio en memoria (interfaz lista).
-- [ ] Apuntar los clientes (Android/Angular/RN) a la API real (cambio de baseUrl).
 - [ ] Resolución de conflictos de sincronización (last-write-wins → estrategia por campo).
 
 ### Fase 5 — Marketing (HyperFrames)
