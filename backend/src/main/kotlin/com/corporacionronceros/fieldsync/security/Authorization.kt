@@ -32,7 +32,10 @@ private class AuthorizedRouteSelector(private val description: String) : RouteSe
  */
 fun Route.authorize(vararg roles: UserRole, build: Route.() -> Unit): Route {
     val route = createChild(AuthorizedRouteSelector(roles.joinToString()))
-    route.intercept(ApplicationCallPipeline.Plugins) {
+    // Fase Call (no Plugins): el plugin de Authentication resuelve el JWTPrincipal en esa
+    // fase. Interceptar en Plugins corre ANTES de esa resolución — call.role() vería siempre
+    // null y todo el mundo recibiría 403, sin importar su rol real.
+    route.intercept(ApplicationCallPipeline.Call) {
         val role = call.role()
         if (role == null || role !in roles) {
             call.respond(
