@@ -1,0 +1,23 @@
+# Blueprint de Render — despliega el backend FieldSync (Ktor) desde este repo.
+# En Render: New > Blueprint > selecciona este repo. Detecta este archivo automáticamente.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: fieldsync-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      # DATABASE_URL: pégala tú en el dashboard de Render (la copias de Neon).
+      # No la pongas aquí en texto plano — este archivo se versiona en el repo.
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ISSUER
+        value: fieldsync
+      - key: JWT_AUDIENCE
+        value: fieldsync-clients

@@ -132,12 +132,21 @@ curl http://localhost:8080/api/work-orders -H "Authorization: Bearer $TOKEN"
 
 ## Desplegar gratis (portafolio)
 
-Combinación sin costo para demos: **Neon** (Postgres) + **Render** (servidor).
+Combinación sin costo para demos: **Neon** (Postgres) + **Render** (servidor). El repo trae
+[`render.yaml`](../render.yaml) en la raíz (Blueprint de Render) para que el servicio quede
+preconfigurado — solo falta pegar la URL de Neon.
 
-1. Crea un proyecto en **Neon** → copia su `DATABASE_URL` (`postgres://...`).
-2. En **Render** → *New Web Service* apuntando a este repo (`backend/`), runtime Docker.
-3. Configura las variables de entorno: `DATABASE_URL` (la de Neon) y `PORT` (Render lo inyecta).
-4. Deploy. El backend crea el esquema y siembra datos en el primer arranque.
+1. **Neon** ([neon.tech](https://neon.tech)) → crea una cuenta y un proyecto → copia el
+   **connection string** (`postgres://usuario:contraseña@host/db`).
+2. **Render** ([render.com](https://render.com)) → crea una cuenta → *New* → **Blueprint** →
+   conecta tu GitHub y selecciona este repo. Render detecta `render.yaml` automáticamente y
+   preconfigura el servicio `fieldsync-backend` (Docker, `backend/Dockerfile`, plan free,
+   health check en `/health`, `JWT_SECRET` autogenerado).
+3. Antes de confirmar el deploy, pega la `DATABASE_URL` de Neon en el campo que Render deja
+   vacío para esa variable (queda marcada `sync: false` en el blueprint — **nunca va en el
+   repo en texto plano**, se pega directo en el dashboard de Render).
+4. Deploy. El backend crea el esquema y siembra los datos demo en el primer arranque.
+5. Prueba: `curl https://<tu-servicio>.onrender.com/health`.
 
 > ⚠️ En free tier, el **servicio de Render duerme tras ~15 min de inactividad** (cold start en la
 > primera petición) y **Neon escala a cero** cuando está inactiva (despierta en la primera query).
@@ -146,10 +155,11 @@ Combinación sin costo para demos: **Neon** (Postgres) + **Render** (servidor).
 
 | Variable | Ejemplo | Notas |
 |----------|---------|-------|
-| `DATABASE_URL` | `postgres://user:pass@host/db` | Sin ella → modo en memoria |
+| `DATABASE_URL` | `postgres://user:pass@host/db` | Sin ella → modo en memoria. Pégala en Render, no en el repo |
 | `DB_USER` / `DB_PASSWORD` | — | Solo si usas `DATABASE_URL` en formato `jdbc:` |
 | `PORT` | `8080` | El host suele inyectarla |
 | `DB_POOL_SIZE` | `5` | Tamaño del pool Hikari (opcional) |
-| `JWT_SECRET` | `un-secreto-largo-y-aleatorio` | **Cámbialo en producción** |
+| `JWT_SECRET` | (autogenerado por el blueprint) | Cámbialo si no usas el blueprint |
 | `JWT_ISSUER` / `JWT_AUDIENCE` | `fieldsync` / `fieldsync-clients` | Opcionales |
-| `JWT_VALIDITY_MS` | `604800000` | Vigencia del token (7 días por defecto) |
+| `JWT_ACCESS_VALIDITY_MS` | `900000` | Vigencia del access token (15 min por defecto) |
+| `JWT_REFRESH_VALIDITY_MS` | `2592000000` | Vigencia del refresh token (30 días por defecto) |

@@ -15,9 +15,8 @@ Conecta la oficina, al técnico en la calle y al cliente final en un solo flujo,
 ![React Native](https://img.shields.io/badge/React%20Native-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
-<!-- Al subir el repo a GitHub, reemplaza OWNER por tu usuario para activar el badge de CI:
-![CI](https://github.com/OWNER/fieldsync-saas/actions/workflows/ci.yml/badge.svg) -->
-Integración continua: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — tests de Android + build de Angular en cada push/PR.
+[![CI](https://github.com/BRIAM13/fieldsync-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/BRIAM13/fieldsync-saas/actions/workflows/ci.yml)
+Repo: [github.com/BRIAM13/fieldsync-saas](https://github.com/BRIAM13/fieldsync-saas) · Backend en vivo: _pendiente de desplegar_ (ver [`backend/README.md`](backend/README.md#desplegar-gratis-portafolio))
 
 > **Sobre este repositorio.** FieldSync es la **pieza central del portafolio** de Briam Ronceros
 > para postular a puestos de **Desarrollador Android**. Cada componente está elegido para
