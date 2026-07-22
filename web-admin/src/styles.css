@@ -1,13 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap');
+
 :root {
   --fs-primary: #2563eb;
-  --fs-bg: #0f172a;
-  --fs-surface: #1e293b;
-  --fs-text: #e2e8f0;
+  --fs-primary-dark: #1d4ed8;
+  --fs-primary-light: rgba(37, 99, 235, 0.14);
+
+  --fs-bg: #0b1220;
+  --fs-surface: #111a2e;
+  --fs-surface-2: #16213a;
+  --fs-border: #22304d;
+
+  --fs-text: #e6ebf5;
+  --fs-text-muted: #93a0bd;
+  --fs-text-faint: #5d6b8a;
+
+  --fs-success: #16a34a;
+  --fs-warning: #ca8a04;
+  --fs-danger: #dc2626;
+  --fs-purple: #9333ea;
+
+  --fs-radius-sm: 8px;
+  --fs-radius-md: 12px;
+  --fs-radius-lg: 16px;
+  --fs-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
-* { box-sizing: border-box; }
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   background: var(--fs-bg);
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(37, 99, 235, 0.16), transparent 45%),
+    radial-gradient(circle at 100% 30%, rgba(37, 99, 235, 0.08), transparent 40%);
+  background-attachment: fixed;
   color: var(--fs-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--fs-border);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Tarjeta base reutilizable en toda la app */
+.fs-card {
+  background: var(--fs-surface);
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-lg);
+}
+
+/* Badges de prioridad/estado — usar con [class]="'badge badge-' + value.toLowerCase()" */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.badge-low {
+  background: rgba(22, 163, 74, 0.14);
+  color: #4ade80;
+}
+.badge-medium {
+  background: rgba(202, 138, 4, 0.16);
+  color: #facc15;
+}
+.badge-high {
+  background: rgba(234, 88, 12, 0.16);
+  color: #fb923c;
+}
+.badge-urgent {
+  background: rgba(220, 38, 38, 0.16);
+  color: #f87171;
+}
+.badge-unassigned {
+  background: rgba(100, 116, 139, 0.18);
+  color: #94a3b8;
+}
+.badge-assigned {
+  background: rgba(37, 99, 235, 0.16);
+  color: #60a5fa;
+}
+.badge-in_progress {
+  background: rgba(202, 138, 4, 0.16);
+  color: #facc15;
+}
+.badge-on_hold {
+  background: rgba(147, 51, 234, 0.16);
+  color: #c084fc;
+}
+.badge-completed {
+  background: rgba(22, 163, 74, 0.16);
+  color: #4ade80;
+}
+.badge-cancelled {
+  background: rgba(220, 38, 38, 0.16);
+  color: #f87171;
+}
+
+button,
+input {
+  font-family: inherit;
 }

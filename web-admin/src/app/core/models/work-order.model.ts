@@ -1,6 +1,12 @@
 /** Modelo tipado de una orden de trabajo, compartido por todo el panel. */
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-export type WorkOrderStatus = 'UNASSIGNED' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED';
+export type WorkOrderStatus =
+  | 'UNASSIGNED'
+  | 'ASSIGNED'
+  | 'IN_PROGRESS'
+  | 'ON_HOLD'
+  | 'COMPLETED'
+  | 'CANCELLED';
 
 export interface GeoPoint {
   lat: number;

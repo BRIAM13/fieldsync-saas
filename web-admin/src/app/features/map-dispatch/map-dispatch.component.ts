@@ -13,6 +13,7 @@ import * as L from 'leaflet';
 import { WorkOrderService } from '../../core/services/work-order.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Technician, WorkOrder } from '../../core/models/work-order.model';
+import { priorityLabel, statusLabel } from '../../core/utils/labels';
 
 /**
  * Asignación inteligente en mapa (característica clave #1) con **Leaflet + OpenStreetMap**.
@@ -26,47 +27,120 @@ import { Technician, WorkOrder } from '../../core/models/work-order.model';
   standalone: true,
   imports: [NgFor, NgIf],
   template: `
-    <h2>Asignación en mapa</h2>
-    <div class="layout">
-      <div #map class="map"></div>
+    <div class="header-row">
+      <div>
+        <h2>Asignación en mapa</h2>
+        <p class="sub">Elige una orden y asígnala al técnico más cercano</p>
+      </div>
+    </div>
 
-      <aside class="panel">
-        <h3>Técnicos</h3>
+    <div class="layout">
+      <div class="map-card">
+        <div #map class="map"></div>
+      </div>
+
+      <aside class="panel fs-card">
+        <div class="panel-header">
+          <h3>Técnicos</h3>
+          <span class="count">{{ technicians().length }}</span>
+        </div>
+
         <ul>
-          <li *ngFor="let t of technicians()">
-            <span [class.off]="!t.available">{{ t.name }}</span>
+          <li *ngFor="let t of technicians()" [class.off]="!t.available">
+            <div class="tech-dot" [class.available]="t.available"></div>
+            <div class="tech-info">
+              <span class="tech-name">{{ t.name }}</span>
+              <span class="tech-status">{{ t.available ? 'Disponible' : 'Ocupado' }}</span>
+            </div>
             <button *ngIf="canAssign() && selectedOrderId() && t.available" (click)="assign(t.id)">
               Asignar
             </button>
           </li>
         </ul>
-        <p *ngIf="!canAssign()" class="muted">
-          Tu rol ({{ role() }}) no puede asignar órdenes.
-        </p>
-        <p *ngIf="canAssign() && selectedOrderId(); else hint">
+
+        <div class="footer-note" *ngIf="!canAssign()">
+          <span class="lock">🔒</span>
+          Tu rol ({{ roleLabel() }}) no puede asignar órdenes.
+        </div>
+        <div class="footer-note selected" *ngIf="canAssign() && selectedOrderId(); else hint">
           Orden seleccionada: <b>{{ selectedOrderId() }}</b>
-        </p>
+        </div>
         <ng-template #hint>
-          <p *ngIf="canAssign()" class="muted">Haz clic en un pin de orden 📍 para asignarla.</p>
+          <div class="footer-note" *ngIf="canAssign()">
+            Haz clic en un pin de orden 📍 en el mapa para asignarla.
+          </div>
         </ng-template>
       </aside>
     </div>
   `,
   styles: [`
-    .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
-    .map { height: 460px; border-radius: 8px; overflow: hidden; border: 1px solid #334155; }
-    .panel { background: var(--fs-surface); border-radius: 8px; padding: 16px; }
-    .panel li { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
-    .off { color: #64748b; text-decoration: line-through; }
-    .muted { color: #64748b; font-size: 13px; }
-    button { background: var(--fs-primary); color: #fff; border: 0; border-radius: 6px;
-             padding: 4px 10px; cursor: pointer; }
+    .header-row { margin-bottom: 20px; }
+    h2 { margin: 0; font-size: 22px; }
+    .sub { margin: 4px 0 0; color: var(--fs-text-faint); font-size: 13px; }
+
+    .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
+
+    .map-card {
+      border-radius: var(--fs-radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--fs-border);
+      box-shadow: var(--fs-shadow);
+    }
+    .map { height: 480px; }
+
+    .panel { padding: 18px; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .panel-header h3 { margin: 0; font-size: 15px; }
+    .count {
+      background: var(--fs-primary-light); color: #60a5fa;
+      font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 100px;
+    }
+
+    ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+    li {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 8px; border-radius: var(--fs-radius-sm);
+      transition: background 0.15s;
+    }
+    li:hover { background: rgba(255, 255, 255, 0.03); }
+    li.off { opacity: 0.55; }
+
+    .tech-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: var(--fs-text-faint);
+    }
+    .tech-dot.available { background: #4ade80; box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.18); }
+
+    .tech-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .tech-name { font-size: 13px; font-weight: 500; color: var(--fs-text); }
+    .tech-status { font-size: 11px; color: var(--fs-text-faint); }
+
+    button {
+      background: var(--fs-primary); color: #fff; border: 0; border-radius: var(--fs-radius-sm);
+      padding: 6px 12px; cursor: pointer; font-size: 12px; font-weight: 600;
+      transition: background 0.15s;
+    }
+    button:hover { background: var(--fs-primary-dark); }
+
+    .footer-note {
+      margin-top: 14px; padding: 10px 12px;
+      background: var(--fs-surface-2); border-radius: var(--fs-radius-sm);
+      color: var(--fs-text-faint); font-size: 12px; line-height: 1.5;
+    }
+    .footer-note.selected { color: var(--fs-text); background: var(--fs-primary-light); }
+    .footer-note .lock { margin-right: 4px; }
+
     /* Marcadores (divIcon) */
     :host ::ng-deep .fs-pin {
       font-size: 22px; line-height: 22px; text-align: center;
       filter: drop-shadow(0 1px 2px rgba(0,0,0,.4));
     }
     :host ::ng-deep .fs-pin.assigned { opacity: .5; }
+    :host ::ng-deep .leaflet-popup-content-wrapper {
+      background: var(--fs-surface); color: var(--fs-text);
+      border: 1px solid var(--fs-border); border-radius: var(--fs-radius-sm);
+    }
+    :host ::ng-deep .leaflet-popup-tip { background: var(--fs-surface); }
   `],
 })
 export class MapDispatchComponent implements AfterViewInit, OnDestroy {
@@ -79,7 +153,11 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
   readonly selectedOrderId = signal<string | null>(null);
 
   /** RBAC en el cliente: solo ADMIN/DISPATCHER asignan (el backend lo exige de todos modos). */
-  readonly role = () => this.auth.user()?.role ?? '—';
+  readonly roleLabel = () => {
+    const map: Record<string, string> = { ADMIN: 'Administrador', DISPATCHER: 'Despachador', TECHNICIAN: 'Técnico' };
+    const r = this.auth.user()?.role;
+    return r ? (map[r] ?? r) : '—';
+  };
   readonly canAssign = () => {
     const r = this.auth.user()?.role;
     return r === 'ADMIN' || r === 'DISPATCHER';
@@ -152,7 +230,9 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
       L.marker([order.location.lat, order.location.lng], {
         icon: this.pinIcon('📍', assigned),
       })
-        .bindPopup(`<b>${order.title}</b><br>${order.customerName}<br>${order.status}`)
+        .bindPopup(
+          `<b>${order.title}</b><br>${order.customerName}<br>${priorityLabel(order.priority)} · ${statusLabel(order.status)}`,
+        )
         .on('click', () => this.selectedOrderId.set(order.id))
         .addTo(this.orderLayer);
 

@@ -11,40 +11,105 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [FormsModule, NgIf],
   template: `
     <div class="wrap">
-      <form class="card" (ngSubmit)="submit()">
-        <h1>FieldSync</h1>
-        <p class="sub">Panel de despacho</p>
+      <div class="panel">
+        <div class="hero">
+          <div class="mark">🔧</div>
+          <h1>FieldSync</h1>
+          <p>Gestión de servicios de campo</p>
+        </div>
 
-        <label>Email</label>
-        <input type="email" name="email" [(ngModel)]="email" autocomplete="username" required />
+        <form class="form" (ngSubmit)="submit()">
+          <label>Correo electrónico</label>
+          <input type="email" name="email" [(ngModel)]="email" autocomplete="username" required />
 
-        <label>Contraseña</label>
-        <input type="password" name="password" [(ngModel)]="password"
-               autocomplete="current-password" required />
+          <label>Contraseña</label>
+          <input
+            type="password"
+            name="password"
+            [(ngModel)]="password"
+            autocomplete="current-password"
+            required
+          />
 
-        <button type="submit" [disabled]="loading()">
-          {{ loading() ? 'Ingresando…' : 'Ingresar' }}
-        </button>
+          <button type="submit" [disabled]="loading()">
+            {{ loading() ? 'Ingresando…' : 'Ingresar' }}
+          </button>
 
-        <p class="err" *ngIf="error()">{{ error() }}</p>
-        <p class="hint">Demo: admin&#64;fieldsync.dev / demo1234</p>
-      </form>
+          <p class="err" *ngIf="error()">⚠ {{ error() }}</p>
+
+          <div class="hint">
+            Cuenta de demostración<br />
+            <strong>admin&#64;fieldsync.dev</strong> / demo1234
+          </div>
+        </form>
+      </div>
     </div>
   `,
   styles: [`
-    .wrap { min-height: 80vh; display: grid; place-items: center; }
-    .card { display: flex; flex-direction: column; gap: 8px; width: 320px;
-            background: var(--fs-surface); padding: 28px; border-radius: 12px; }
-    h1 { margin: 0; color: var(--fs-primary); font-size: 24px; }
-    .sub { margin: 0 0 12px; color: #94a3b8; font-size: 13px; }
-    label { font-size: 12px; color: #94a3b8; margin-top: 6px; }
-    input { padding: 10px; border-radius: 8px; border: 1px solid #334155;
-            background: #0b1220; color: var(--fs-text); }
-    button { margin-top: 14px; padding: 11px; border: 0; border-radius: 8px;
-             background: var(--fs-primary); color: #fff; cursor: pointer; font-weight: 600; }
-    button:disabled { opacity: .6; cursor: default; }
-    .err { color: #f87171; font-size: 13px; }
-    .hint { color: #64748b; font-size: 12px; margin-top: 4px; }
+    .wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .panel {
+      width: 380px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--fs-surface);
+      border: 1px solid var(--fs-border);
+      box-shadow: var(--fs-shadow);
+    }
+    .hero {
+      padding: 36px 28px 28px;
+      background: linear-gradient(135deg, var(--fs-primary), var(--fs-primary-dark));
+      text-align: center;
+    }
+    .mark { font-size: 34px; margin-bottom: 8px; }
+    .hero h1 { margin: 0; color: #fff; font-size: 22px; }
+    .hero p { margin: 4px 0 0; color: rgba(255, 255, 255, 0.85); font-size: 13px; }
+
+    .form { display: flex; flex-direction: column; gap: 6px; padding: 28px; }
+    label { font-size: 12px; color: var(--fs-text-muted); margin-top: 10px; font-weight: 500; }
+    input {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--fs-border);
+      background: var(--fs-bg);
+      color: var(--fs-text);
+      font-size: 14px;
+      transition: border-color 0.15s;
+    }
+    input:focus { outline: none; border-color: var(--fs-primary); }
+
+    button {
+      margin-top: 20px;
+      padding: 13px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--fs-primary);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.15s;
+    }
+    button:hover:not(:disabled) { background: var(--fs-primary-dark); }
+    button:disabled { opacity: 0.6; cursor: default; }
+
+    .err { color: #f87171; font-size: 13px; margin: 4px 0 0; }
+
+    .hint {
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--fs-surface-2);
+      color: var(--fs-text-faint);
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .hint strong { color: var(--fs-text-muted); }
   `],
 })
 export class LoginComponent {
