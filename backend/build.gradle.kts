@@ -6,8 +6,12 @@ val postgres_version: String by project
 val hikari_version: String by project
 
 plugins {
-    kotlin("jvm") version "2.0.0"
-    kotlin("plugin.serialization") version "2.0.0"
+    // Kotlin 1.9 (compilador K1): Ktor 2.3.x y Exposed 0.53.x se probaron contra K1.
+    // El compilador K2 (Kotlin 2.0 default) tiene una regresión de inferencia con
+    // los tipos lambda-con-receptor del DSL de rutas de Ktor (PipelineInterceptor) y
+    // con las funciones infix de Exposed (eq, etc.) — produce "Unresolved reference".
+    kotlin("jvm") version "1.9.24"
+    kotlin("plugin.serialization") version "1.9.24"
     id("io.ktor.plugin") version "2.3.12"
     application
 }

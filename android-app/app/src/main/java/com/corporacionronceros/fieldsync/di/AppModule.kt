@@ -53,6 +53,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideHttpClient(tokenStore: TokenStore): HttpClient = HttpClient(OkHttp) {
+        // Un 4xx/5xx lanza excepción (ClientRequestException/ServerResponseException) en vez
+        // de devolver el body de error silenciosamente — permite distinguir 401 de un fallo de red.
+        expectSuccess = true
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
         }

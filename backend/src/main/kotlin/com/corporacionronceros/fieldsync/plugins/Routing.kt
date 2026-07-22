@@ -9,6 +9,7 @@ import com.corporacionronceros.fieldsync.routes.workOrderRoutes
 import com.corporacionronceros.fieldsync.security.JwtService
 import com.corporacionronceros.fieldsync.tracking.TrackingService
 import io.ktor.server.application.Application
+import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
