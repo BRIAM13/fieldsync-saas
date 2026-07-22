@@ -1,11 +1,14 @@
 package com.corporacionronceros.fieldsync.history.view
 
 import android.os.Bundle
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.corporacionronceros.fieldsync.R
 import com.corporacionronceros.fieldsync.history.contract.HistoryContract
 import com.corporacionronceros.fieldsync.history.model.ServiceRecord
 import com.corporacionronceros.fieldsync.history.presenter.HistoryPresenter
@@ -23,8 +26,12 @@ class HistoryActivity : AppCompatActivity(), HistoryContract.View {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // El layout XML (activity_history.xml) contendría el ListView y el ProgressBar.
-        // setContentView(R.layout.activity_history)
+        setContentView(R.layout.activity_history)
+
+        listView = findViewById(R.id.list_view)
+        progress = findViewById(R.id.progress)
+        findViewById<TextView>(R.id.back_button).setOnClickListener { finish() }
+
         presenter.attach(this)
         presenter.loadHistory()
     }
@@ -34,12 +41,12 @@ class HistoryActivity : AppCompatActivity(), HistoryContract.View {
         super.onDestroy()
     }
 
-    override fun showLoading() { /* progress.visibility = View.VISIBLE */ }
-    override fun hideLoading() { /* progress.visibility = View.GONE */ }
+    override fun showLoading() { progress.visibility = View.VISIBLE }
+    override fun hideLoading() { progress.visibility = View.GONE }
 
     override fun showRecords(records: List<ServiceRecord>) {
         val labels = records.map { "${it.completedOn} · ${it.title} (${it.customerName})" }
-        // listView.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, labels)
+        listView.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, labels)
     }
 
     override fun showError(message: String) {

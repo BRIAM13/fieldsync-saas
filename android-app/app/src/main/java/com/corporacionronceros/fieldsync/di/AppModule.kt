@@ -77,7 +77,7 @@ object AppModule {
                             setBody(RefreshRequestDto(refresh))
                         }.body<AuthResponseDto>()
                     }.getOrNull() ?: return@refreshTokens null
-                    tokenStore.save(refreshed.token, refreshed.refreshToken)
+                    tokenStore.saveTokens(refreshed.token, refreshed.refreshToken)
                     BearerTokens(refreshed.token, refreshed.refreshToken)
                 }
             }

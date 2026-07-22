@@ -30,6 +30,11 @@ fun FieldSyncNavHost(navController: NavHostController = rememberNavController())
             TasksScreen(
                 onOrderClick = { orderId ->
                     navController.navigate(Screen.TaskDetail.routeFor(orderId))
+                },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
