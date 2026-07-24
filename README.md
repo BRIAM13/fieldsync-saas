@@ -16,7 +16,7 @@ Conecta la oficina, al técnico en la calle y al cliente final en un solo flujo,
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
 [![CI](https://github.com/BRIAM13/fieldsync-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/BRIAM13/fieldsync-saas/actions/workflows/ci.yml)
-Repo: [github.com/BRIAM13/fieldsync-saas](https://github.com/BRIAM13/fieldsync-saas) · Backend en vivo: _pendiente de desplegar_ (ver [`backend/README.md`](backend/README.md#desplegar-gratis-portafolio))
+Repo: [github.com/BRIAM13/fieldsync-saas](https://github.com/BRIAM13/fieldsync-saas) · **Backend en vivo:** [fieldsync-backend-cipm.onrender.com](https://fieldsync-backend-cipm.onrender.com/health) (Render + Aiven Postgres) · Cuenta demo: `admin@fieldsync.dev` / `demo1234`
 
 > **Sobre este repositorio.** FieldSync es la **pieza central del portafolio** de Briam Ronceros
 > para postular a puestos de **Desarrollador Android**. Cada componente está elegido para
@@ -142,8 +142,12 @@ Detalle completo por fases en [`ROADMAP.md`](ROADMAP.md).
 
 ## Cómo ejecutar cada parte
 
-> **Los tres clientes consumen el backend real** (con login JWT). Levanta primero el backend
-> (`cd backend && gradle run`, en `:8080`) y luego el cliente. Cuenta demo: **admin@fieldsync.dev / demo1234**.
+> **Los tres clientes apuntan por defecto al backend en producción**
+> ([fieldsync-backend-cipm.onrender.com](https://fieldsync-backend-cipm.onrender.com)) — corren
+> tal cual, sin levantar nada más. Cuenta demo: **admin@fieldsync.dev / demo1234**. Para apuntar
+> a un backend local en su lugar (`cd backend && gradle run`, `:8080`), cambia la URL base en
+> `ApiConfig.kt` (Android), `api.config.ts` (Angular) o `config.ts` (React Native) — cada archivo
+> trae la alternativa local comentada.
 
 ### Panel web (Angular) — lo más rápido de ver
 ```bash

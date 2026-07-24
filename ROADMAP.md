@@ -114,7 +114,9 @@ Esta es la sección que traduce el proyecto en **argumentos de entrevista**. Cad
 - [x] Clientes conectados a la API real: Android (Ktor client), Angular (HttpClient), RN (WebSocket).
 - [x] Backend extendido: técnicos, asignación y ubicación para el panel de despacho.
 - [x] Persistencia **Postgres + Exposed** (Hikari), seleccionable por `DATABASE_URL`; repo en memoria como fallback.
-- [x] Listo para desplegar: Dockerfile + docker-compose + guía Neon/Render.
+- [x] **Desplegado en vivo**: Render + Aiven Postgres — [fieldsync-backend-cipm.onrender.com](https://fieldsync-backend-cipm.onrender.com/health).
+      Verificado end-to-end (health, login, API autenticada); los 3 clientes apuntan aquí por defecto.
+      `/health` hace un `SELECT 1` real + guía de keep-alive con UptimeRobot en `backend/README.md`.
 - [x] **Autenticación JWT + multi-tenancy** por empresa (BCrypt, aislamiento por tenant, tests).
 - [x] Login cableado en los 3 clientes: Angular (interceptor+guard), Android (TokenStore+Bearer+login), RN (login+WS token).
 - [x] **Refresh tokens** (access corto + refresh largo, rotación + revocación) y `/auth/logout`.

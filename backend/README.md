@@ -132,6 +132,10 @@ curl http://localhost:8080/api/work-orders -H "Authorization: Bearer $TOKEN"
 
 ## Desplegar gratis
 
+> ✅ **Ya desplegado:** [fieldsync-backend-cipm.onrender.com](https://fieldsync-backend-cipm.onrender.com/health)
+> — Render + Aiven Postgres, verificado en vivo (health check, login, API autenticada). Los tres
+> clientes ya apuntan aquí por defecto. Lo que sigue documenta cómo se hizo / cómo replicarlo.
+
 El backend se despliega con **Render** (servidor) + Postgres de un proveedor gratuito a tu
 elección. El repo trae [`render.yaml`](../render.yaml) en la raíz (Blueprint de Render) para
 que el servicio quede preconfigurado — solo falta pegar la URL de la base de datos.
