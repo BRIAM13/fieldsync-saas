@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { NgIf } from '@angular/common';
 import { AuthService } from './core/services/auth.service';
+import { ConnectivityService } from './core/services/connectivity.service';
 
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: 'Administrador',
@@ -16,6 +17,13 @@ const ROLE_LABELS: Record<string, string> = {
   imports: [RouterOutlet, RouterLink, RouterLinkActive, NgIf],
   template: `
     <div class="shell">
+      <div class="conn-banner offline" *ngIf="!connectivity.online()">
+        <span class="dot"></span> Sin conexión a internet — los cambios se reintentarán al reconectar
+      </div>
+      <div class="conn-banner backend-down" *ngIf="connectivity.online() && !connectivity.backendReachable()">
+        <span class="spinner"></span> No se pudo conectar con el servidor — reintentando…
+      </div>
+
       <header *ngIf="auth.isAuthenticated()">
         <div class="brand">
           <div class="brand-mark">FS</div>
@@ -50,6 +58,32 @@ const ROLE_LABELS: Record<string, string> = {
   `,
   styles: [`
     .shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+    .conn-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .conn-banner.offline {
+      background: rgba(220, 38, 38, 0.18);
+      color: #fca5a5;
+      border-bottom: 1px solid rgba(220, 38, 38, 0.35);
+    }
+    .conn-banner.offline .dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #f87171;
+    }
+    .conn-banner.backend-down {
+      background: rgba(202, 138, 4, 0.18);
+      color: #fde68a;
+      border-bottom: 1px solid rgba(202, 138, 4, 0.35);
+    }
 
     header {
       display: flex;
@@ -113,6 +147,7 @@ const ROLE_LABELS: Record<string, string> = {
 })
 export class AppComponent {
   readonly auth = inject(AuthService);
+  readonly connectivity = inject(ConnectivityService);
   private readonly router = inject(Router);
 
   initials(): string {

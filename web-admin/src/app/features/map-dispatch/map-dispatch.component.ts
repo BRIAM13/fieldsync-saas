@@ -34,29 +34,49 @@ import { priorityLabel, statusLabel } from '../../core/utils/labels';
       </div>
     </div>
 
+    <div class="fs-error" *ngIf="service.error() as err">
+      <span>⚠ {{ err }}</span>
+      <button (click)="retry()">Reintentar</button>
+    </div>
+
     <div class="layout">
       <div class="map-card">
         <div #map class="map"></div>
+        <div class="map-loading" *ngIf="service.loading()">
+          <span class="spinner"></span> Cargando mapa…
+        </div>
       </div>
 
       <aside class="panel fs-card">
         <div class="panel-header">
           <h3>Técnicos</h3>
-          <span class="count">{{ technicians().length }}</span>
+          <span class="count" *ngIf="!techniciansLoading()">{{ technicians().length }}</span>
         </div>
 
-        <ul>
-          <li *ngFor="let t of technicians()" [class.off]="!t.available">
-            <div class="tech-dot" [class.available]="t.available"></div>
+        <ul *ngIf="canAssign() && techniciansLoading(); else techList">
+          <li *ngFor="let _ of skeletonRows">
+            <span class="skeleton" style="width: 10px; height: 10px; border-radius: 50%"></span>
             <div class="tech-info">
-              <span class="tech-name">{{ t.name }}</span>
-              <span class="tech-status">{{ t.available ? 'Disponible' : 'Ocupado' }}</span>
+              <span class="skeleton" style="width: 100px; margin-bottom: 4px"></span>
+              <span class="skeleton" style="width: 60px; height: 10px"></span>
             </div>
-            <button *ngIf="canAssign() && selectedOrderId() && t.available" (click)="assign(t.id)">
-              Asignar
-            </button>
           </li>
         </ul>
+
+        <ng-template #techList>
+          <ul>
+            <li *ngFor="let t of technicians()" [class.off]="!t.available">
+              <div class="tech-dot" [class.available]="t.available"></div>
+              <div class="tech-info">
+                <span class="tech-name">{{ t.name }}</span>
+                <span class="tech-status">{{ t.available ? 'Disponible' : 'Ocupado' }}</span>
+              </div>
+              <button *ngIf="canAssign() && selectedOrderId() && t.available" (click)="assign(t.id)">
+                Asignar
+              </button>
+            </li>
+          </ul>
+        </ng-template>
 
         <div class="footer-note" *ngIf="!canAssign()">
           <span class="lock">🔒</span>
@@ -81,12 +101,27 @@ import { priorityLabel, statusLabel } from '../../core/utils/labels';
     .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
 
     .map-card {
+      position: relative;
       border-radius: var(--fs-radius-lg);
       overflow: hidden;
       border: 1px solid var(--fs-border);
       box-shadow: var(--fs-shadow);
     }
     .map { height: 480px; }
+    .map-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(11, 18, 32, 0.72);
+      backdrop-filter: blur(2px);
+      color: var(--fs-text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 5;
+    }
 
     .panel { padding: 18px; }
     .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
@@ -146,11 +181,13 @@ import { priorityLabel, statusLabel } from '../../core/utils/labels';
 export class MapDispatchComponent implements AfterViewInit, OnDestroy {
   @ViewChild('map') mapEl!: ElementRef<HTMLElement>;
 
-  private readonly service = inject(WorkOrderService);
+  readonly service = inject(WorkOrderService);
   private readonly auth = inject(AuthService);
 
   readonly technicians = signal<Technician[]>([]);
+  readonly techniciansLoading = signal(true);
   readonly selectedOrderId = signal<string | null>(null);
+  readonly skeletonRows = Array.from({ length: 3 });
 
   /** RBAC en el cliente: solo ADMIN/DISPATCHER asignan (el backend lo exige de todos modos). */
   readonly roleLabel = () => {
@@ -182,13 +219,9 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
 
     // El endpoint de técnicos es solo ADMIN/DISPATCHER; no lo pidas si el rol no puede.
     if (this.canAssign()) {
-      this.subs.add(
-        this.service.getTechnicians().subscribe((techs) => {
-          this.technicians.set(techs);
-          this.renderTechnicians(techs);
-          this.renderOrders(this.lastOrders);
-        }),
-      );
+      this.loadTechnicians();
+    } else {
+      this.techniciansLoading.set(false);
     }
     this.subs.add(
       this.service.getWorkOrders().subscribe((orders) => {
@@ -208,6 +241,25 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
     if (!orderId) return;
     this.service.assignOrder(orderId, technicianId);
     this.selectedOrderId.set(null);
+  }
+
+  retry(): void {
+    this.service.refresh();
+    if (this.canAssign()) this.loadTechnicians();
+  }
+
+  private loadTechnicians(): void {
+    this.subs.add(
+      this.service.getTechnicians().subscribe({
+        next: (techs) => {
+          this.technicians.set(techs);
+          this.techniciansLoading.set(false);
+          this.renderTechnicians(techs);
+          this.renderOrders(this.lastOrders);
+        },
+        error: () => this.techniciansLoading.set(false),
+      }),
+    );
   }
 
   private pinIcon(emoji: string, assigned: boolean): L.DivIcon {

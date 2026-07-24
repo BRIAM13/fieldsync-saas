@@ -55,13 +55,19 @@ const ROLE_LABELS: Record<UserRole, string> = {
       </div>
       <div class="form-actions">
         <button type="submit" class="primary" [disabled]="submitting()">
+          <span class="spinner" *ngIf="submitting()"></span>
           {{ submitting() ? 'Creando…' : 'Crear usuario' }}
         </button>
         <p class="err" *ngIf="error()">⚠ {{ error() }}</p>
       </div>
     </form>
 
-    <div class="fs-card table-card">
+    <div class="fs-error" *ngIf="service.error() as err">
+      <span>⚠ {{ err }}</span>
+      <button (click)="service.refresh()">Reintentar</button>
+    </div>
+
+    <div class="fs-card table-card" *ngIf="!service.error()">
       <table>
         <thead>
           <tr>
@@ -70,13 +76,22 @@ const ROLE_LABELS: Record<UserRole, string> = {
             <th>Rol</th>
           </tr>
         </thead>
-        <tbody>
-          <tr *ngFor="let u of users$ | async">
-            <td class="title-cell">{{ u.name }}</td>
-            <td class="mono">{{ u.email }}</td>
-            <td><span [class]="'badge badge-' + u.role.toLowerCase()">{{ roleLabel(u.role) }}</span></td>
+        <tbody *ngIf="service.loading(); else loaded">
+          <tr *ngFor="let _ of skeletonRows">
+            <td><span class="skeleton" style="width: 130px"></span></td>
+            <td><span class="skeleton" style="width: 170px"></span></td>
+            <td><span class="skeleton" style="width: 90px"></span></td>
           </tr>
         </tbody>
+        <ng-template #loaded>
+          <tbody>
+            <tr *ngFor="let u of users$ | async">
+              <td class="title-cell">{{ u.name }}</td>
+              <td class="mono">{{ u.email }}</td>
+              <td><span [class]="'badge badge-' + u.role.toLowerCase()">{{ roleLabel(u.role) }}</span></td>
+            </tr>
+          </tbody>
+        </ng-template>
       </table>
     </div>
   `,
@@ -89,6 +104,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
       background: var(--fs-primary); color: #fff; border: 0; border-radius: var(--fs-radius-sm);
       padding: 9px 16px; cursor: pointer; font-size: 13px; font-weight: 600;
       transition: background 0.15s;
+      display: inline-flex; align-items: center; gap: 8px;
     }
     .primary:hover:not(:disabled) { background: var(--fs-primary-dark); }
     .primary:disabled { opacity: 0.6; cursor: default; }
@@ -119,9 +135,10 @@ const ROLE_LABELS: Record<UserRole, string> = {
   `],
 })
 export class UserManagementComponent {
-  private readonly service = inject(UserManagementService);
+  readonly service = inject(UserManagementService);
 
   readonly users$ = this.service.getUsers();
+  readonly skeletonRows = Array.from({ length: 4 });
   readonly showForm = signal(false);
   readonly submitting = signal(false);
   readonly error = signal<string | null>(null);
@@ -156,9 +173,11 @@ export class UserManagementComponent {
         error: (err: HttpErrorResponse) => {
           this.submitting.set(false);
           this.error.set(
-            err.status === 409
-              ? 'Ese correo ya está registrado.'
-              : (err.error?.message ?? 'No se pudo crear el usuario.')
+            err.status === 0
+              ? 'Sin conexión con el servidor. Intenta de nuevo.'
+              : err.status === 409
+                ? 'Ese correo ya está registrado.'
+                : (err.error?.message ?? 'No se pudo crear el usuario.')
           );
         },
       });

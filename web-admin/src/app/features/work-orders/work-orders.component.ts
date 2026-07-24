@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { AsyncPipe, NgFor } from '@angular/common';
+import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { WorkOrderService } from '../../core/services/work-order.service';
 import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.pipe';
 
@@ -7,7 +7,7 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
 @Component({
   selector: 'fs-work-orders',
   standalone: true,
-  imports: [NgFor, AsyncPipe, PriorityLabelPipe, StatusLabelPipe],
+  imports: [NgFor, NgIf, AsyncPipe, PriorityLabelPipe, StatusLabelPipe],
   template: `
     <div class="header-row">
       <div>
@@ -16,7 +16,12 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
       </div>
     </div>
 
-    <div class="fs-card table-card">
+    <div class="fs-error" *ngIf="service.error() as err">
+      <span>⚠ {{ err }}</span>
+      <button (click)="service.refresh()">Reintentar</button>
+    </div>
+
+    <div class="fs-card table-card" *ngIf="!service.error()">
       <table>
         <thead>
           <tr>
@@ -27,15 +32,26 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
             <th>Estado</th>
           </tr>
         </thead>
-        <tbody>
-          <tr *ngFor="let o of orders$ | async">
-            <td class="mono">{{ o.id }}</td>
-            <td class="title-cell">{{ o.title }}</td>
-            <td>{{ o.customerName }}</td>
-            <td><span [class]="'badge badge-' + o.priority.toLowerCase()">{{ o.priority | priorityLabel }}</span></td>
-            <td><span [class]="'badge badge-' + o.status.toLowerCase()">{{ o.status | statusLabel }}</span></td>
+        <tbody *ngIf="service.loading(); else loaded">
+          <tr *ngFor="let _ of skeletonRows">
+            <td><span class="skeleton" style="width: 70px"></span></td>
+            <td><span class="skeleton" style="width: 140px"></span></td>
+            <td><span class="skeleton" style="width: 110px"></span></td>
+            <td><span class="skeleton" style="width: 60px"></span></td>
+            <td><span class="skeleton" style="width: 80px"></span></td>
           </tr>
         </tbody>
+        <ng-template #loaded>
+          <tbody>
+            <tr *ngFor="let o of orders$ | async">
+              <td class="mono">{{ o.id }}</td>
+              <td class="title-cell">{{ o.title }}</td>
+              <td>{{ o.customerName }}</td>
+              <td><span [class]="'badge badge-' + o.priority.toLowerCase()">{{ o.priority | priorityLabel }}</span></td>
+              <td><span [class]="'badge badge-' + o.status.toLowerCase()">{{ o.status | statusLabel }}</span></td>
+            </tr>
+          </tbody>
+        </ng-template>
       </table>
     </div>
   `,
@@ -62,6 +78,7 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
   `],
 })
 export class WorkOrdersComponent {
-  private readonly service = inject(WorkOrderService);
+  readonly service = inject(WorkOrderService);
   readonly orders$ = this.service.getWorkOrders();
+  readonly skeletonRows = Array.from({ length: 5 });
 }

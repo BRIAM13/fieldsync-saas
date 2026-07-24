@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, fromEvent } from 'rxjs';
 import { Technician, WorkOrder } from '../models/work-order.model';
 import { API_BASE } from '../api.config';
 
@@ -16,8 +16,15 @@ export class WorkOrderService {
   private readonly http = inject(HttpClient);
   private readonly ordersSubject = new BehaviorSubject<WorkOrder[]>([]);
 
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+  private hasLoadedOnce = false;
+
   constructor() {
     this.refresh();
+    // Al recuperar la conexión, refresca en silencio — solo muestra el skeleton de nuevo
+    // si nunca llegó a cargar datos (evita parpadeos en refrescos de fondo).
+    fromEvent(window, 'online').subscribe(() => this.refresh());
   }
 
   /** Stream de órdenes que los componentes observan. */
@@ -27,9 +34,19 @@ export class WorkOrderService {
 
   /** Re-consulta la API y emite la lista fresca. */
   refresh(): void {
-    this.http
-      .get<WorkOrder[]>(`${API_BASE}/api/work-orders`)
-      .subscribe((orders) => this.ordersSubject.next(orders));
+    this.error.set(null);
+    if (!this.hasLoadedOnce) this.loading.set(true);
+    this.http.get<WorkOrder[]>(`${API_BASE}/api/work-orders`).subscribe({
+      next: (orders) => {
+        this.ordersSubject.next(orders);
+        this.loading.set(false);
+        this.hasLoadedOnce = true;
+      },
+      error: () => {
+        this.loading.set(false);
+        this.error.set('No se pudieron cargar las órdenes de trabajo.');
+      },
+    });
   }
 
   /** Técnicos disponibles para asignar (una consulta puntual). */

@@ -151,3 +151,66 @@ input,
 select {
   font-family: inherit;
 }
+
+/* Spinner inline — botones y avisos en curso: <span class="spinner"></span> */
+@keyframes fs-spin {
+  to { transform: rotate(360deg); }
+}
+.spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: currentColor;
+  animation: fs-spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Skeleton shimmer — placeholders de carga: <div class="skeleton" style="width:Npx"></div> */
+@keyframes fs-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  display: inline-block;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--fs-surface-2) 25%,
+    rgba(255, 255, 255, 0.07) 50%,
+    var(--fs-surface-2) 75%
+  );
+  background-size: 800px 100%;
+  animation: fs-shimmer 1.4s linear infinite;
+}
+
+/* Aviso de error con reintento — listas que no pudieron cargar */
+.fs-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  border-radius: var(--fs-radius-lg);
+  color: #fca5a5;
+  font-size: 13px;
+}
+.fs-error button {
+  background: transparent;
+  border: 1px solid rgba(248, 113, 113, 0.5);
+  color: #fca5a5;
+  border-radius: var(--fs-radius-sm);
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.fs-error button:hover {
+  background: rgba(220, 38, 38, 0.15);
+}

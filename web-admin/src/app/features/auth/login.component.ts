@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NgIf } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 
 /** Pantalla de inicio de sesión del panel de despacho. */
@@ -32,6 +33,7 @@ import { AuthService } from '../../core/services/auth.service';
           />
 
           <button type="submit" [disabled]="loading()">
+            <span class="spinner" *ngIf="loading()"></span>
             {{ loading() ? 'Ingresando…' : 'Ingresar' }}
           </button>
 
@@ -93,6 +95,10 @@ import { AuthService } from '../../core/services/auth.service';
       font-weight: 600;
       font-size: 14px;
       transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
     button:hover:not(:disabled) { background: var(--fs-primary-dark); }
     button:disabled { opacity: 0.6; cursor: default; }
@@ -126,8 +132,12 @@ export class LoginComponent {
     this.error.set(null);
     this.auth.login({ email: this.email, password: this.password }).subscribe({
       next: () => this.router.navigate(['/dispatch']),
-      error: () => {
-        this.error.set('Credenciales inválidas');
+      error: (err: HttpErrorResponse) => {
+        this.error.set(
+          err.status === 0
+            ? 'Sin conexión con el servidor. Verifica tu internet e intenta de nuevo.'
+            : 'Credenciales inválidas',
+        );
         this.loading.set(false);
       },
     });
