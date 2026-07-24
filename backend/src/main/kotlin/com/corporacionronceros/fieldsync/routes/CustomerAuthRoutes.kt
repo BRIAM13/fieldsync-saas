@@ -11,6 +11,7 @@ import com.corporacionronceros.fieldsync.repository.AuthRepository
 import com.corporacionronceros.fieldsync.repository.CustomerRepository
 import com.corporacionronceros.fieldsync.security.JwtService
 import com.corporacionronceros.fieldsync.security.PasswordHasher
+import com.corporacionronceros.fieldsync.security.rejectIfAbusiveRegistration
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -35,6 +36,7 @@ fun Route.customerAuthRoutes(
                     ApiError("Email, empresa y contraseña (≥6) son obligatorios"))
                 return@post
             }
+            if (call.rejectIfAbusiveRegistration(req.email, req.website, "customer")) return@post
             if (authRepository.companyById(req.companyId) == null) {
                 call.respond(HttpStatusCode.BadRequest, ApiError("Empresa no encontrada"))
                 return@post

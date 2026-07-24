@@ -10,6 +10,7 @@ import com.corporacionronceros.fieldsync.model.User
 import com.corporacionronceros.fieldsync.repository.AuthRepository
 import com.corporacionronceros.fieldsync.security.JwtService
 import com.corporacionronceros.fieldsync.security.PasswordHasher
+import com.corporacionronceros.fieldsync.security.rejectIfAbusiveRegistration
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -30,6 +31,7 @@ fun Route.authRoutes(authRepository: AuthRepository, jwtService: JwtService) {
                     ApiError("Email, empresa y contraseña (≥6) son obligatorios"))
                 return@post
             }
+            if (call.rejectIfAbusiveRegistration(req.email, req.website, "staff")) return@post
             if (authRepository.emailExists(req.email)) {
                 call.respond(HttpStatusCode.Conflict, ApiError("El email ya está registrado"))
                 return@post

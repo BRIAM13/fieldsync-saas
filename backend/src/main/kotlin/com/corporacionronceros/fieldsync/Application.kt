@@ -2,6 +2,7 @@ package com.corporacionronceros.fieldsync
 
 import com.corporacionronceros.fieldsync.db.DatabaseFactory
 import com.corporacionronceros.fieldsync.plugins.configureCors
+import com.corporacionronceros.fieldsync.plugins.configureForwardedHeaders
 import com.corporacionronceros.fieldsync.plugins.configureMonitoring
 import com.corporacionronceros.fieldsync.plugins.configureRouting
 import com.corporacionronceros.fieldsync.plugins.configureSecurity
@@ -17,6 +18,7 @@ import com.corporacionronceros.fieldsync.repository.InMemoryCustomerRepository
 import com.corporacionronceros.fieldsync.repository.InMemoryWorkOrderRepository
 import com.corporacionronceros.fieldsync.repository.WorkOrderRepository
 import com.corporacionronceros.fieldsync.security.JwtService
+import com.corporacionronceros.fieldsync.security.RateLimiter
 import com.corporacionronceros.fieldsync.tracking.TrackingService
 import io.ktor.server.application.Application
 import io.ktor.server.application.log
@@ -33,6 +35,11 @@ fun main() {
 
 /** Ensamblado de la aplicación: instala plugins e inyecta las dependencias a las rutas. */
 fun Application.module() {
+    // Arranque limpio: en tests, cada test invoca module() de nuevo dentro de su propio
+    // testApplication{} — sin este reset, el rate limiter (singleton en memoria) acumularía
+    // intentos entre tests. En producción es un no-op relevante (proceso recién iniciado).
+    RateLimiter.reset()
+
     val jwtService = JwtService.fromEnv()
 
     // Postgres si hay DATABASE_URL; si no, repositorios en memoria (desarrollo sin DB).
@@ -54,6 +61,7 @@ fun Application.module() {
     }
     val trackingService = TrackingService()
 
+    configureForwardedHeaders()
     configureSerialization()
     configureSockets()
     configureCors()

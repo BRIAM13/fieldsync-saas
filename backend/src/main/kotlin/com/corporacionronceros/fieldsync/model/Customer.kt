@@ -19,7 +19,9 @@ data class CustomerRegisterRequest(
     val name: String,
     val email: String,
     val phone: String? = null,
-    val password: String
+    val password: String,
+    /** Honeypot: campo oculto en el formulario real. Si llega no-vacío, es un bot. */
+    val website: String? = null
 )
 
 @Serializable

@@ -40,6 +40,10 @@ dependencies {
     implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-websockets-jvm:$ktor_version")
 
+    // Resuelve la IP real del cliente detrás del proxy de Render (X-Forwarded-For) — necesario
+    // para que el rate limiting por IP del registro funcione en producción.
+    implementation("io.ktor:ktor-server-forwarded-header-jvm:$ktor_version")
+
     // Autenticación JWT + hashing de contraseñas (BCrypt)
     implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktor_version")
