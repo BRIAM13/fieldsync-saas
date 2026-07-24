@@ -11,7 +11,8 @@ services:
     region: oregon
     healthCheckPath: /health
     envVars:
-      # DATABASE_URL: pégala tú en el dashboard de Render (la copias de Neon).
+      # DATABASE_URL: pégala tú en el dashboard de Render (Service URI de Aiven, o de Neon
+      # si prefieres ese proveedor — ver backend/README.md § "Elegir proveedor de Postgres").
       # No la pongas aquí en texto plano — este archivo se versiona en el repo.
       - key: DATABASE_URL
         sync: false
