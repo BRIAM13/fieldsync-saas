@@ -9,13 +9,13 @@ el backend corriendo, Android Studio y un emulador) y colocarlas en `docs/media/
 
 ## Convención de nombres (lo que esperan los README)
 
-| Archivo en `docs/media/` | Qué mostrar |
-|--------------------------|-------------|
-| `web-login.png` | Pantalla de login del panel Angular |
-| `web-dispatch.gif` | Asignar una orden a un técnico en el mapa |
-| `android-tasks.png` | Lista de órdenes en la app del técnico |
-| `android-offline.gif` | Badge "pendiente" → "sincronizado" al volver la red |
-| `client-tracking.gif` | Pin del técnico moviéndose + ETA bajando |
+| Archivo en `docs/media/` | Qué mostrar | Estado |
+|--------------------------|-------------|--------|
+| `web-login.png` | Pantalla de login del panel Angular | ✅ real, contra producción |
+| `web-dispatch.gif` | Asignar una orden a un técnico en el mapa | ✅ real, contra producción |
+| `android-tasks.png` | Lista de órdenes en la app del técnico | ⏳ pendiente |
+| `android-offline.gif` | Badge "pendiente" → "sincronizado" al volver la red | ⏳ pendiente |
+| `client-tracking.gif` | Pin del técnico moviéndose + ETA bajando | ⏳ pendiente |
 
 ---
 

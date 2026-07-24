@@ -51,8 +51,7 @@ npm start        # ng serve → http://localhost:4200
 
 ## 📸 Capturas
 
-Graba las capturas reales con el backend corriendo (ver la [guía de captura](../docs/CAPTURES.md))
-y colócalas en `docs/media/`. Luego descomenta:
+Capturas reales contra el backend en producción (Render + Aiven):
 
-<!-- ![Login](../docs/media/web-login.png) -->
-<!-- ![Asignación en mapa](../docs/media/web-dispatch.gif) -->
+![Login](../docs/media/web-login.png)
+![Asignación en mapa](../docs/media/web-dispatch.gif)
