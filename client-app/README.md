@@ -62,8 +62,7 @@ npm run web       # alternativa rápida: corre en el navegador (útil para proba
 
 ## 📸 Capturas
 
-Graba el flujo completo (registro → solicitud con GPS → seguimiento en vivo) con el backend
-corriendo (ver la [guía de captura](../docs/CAPTURES.md)) y colócalo en `docs/media/`. Luego
-descomenta:
+Flujo real contra producción (Render + Aiven): login/registro de cliente → solicitar servicio
+con GPS → seguimiento en vivo.
 
-<!-- ![Solicitar servicio y seguimiento en tiempo real](../docs/media/client-tracking.gif) -->
+![Solicitar servicio y seguimiento en tiempo real](../docs/media/client-tracking.gif)

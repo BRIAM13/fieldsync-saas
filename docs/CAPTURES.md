@@ -15,7 +15,7 @@ el backend corriendo, Android Studio y un emulador) y colocarlas en `docs/media/
 | `web-dispatch.gif` | Asignar una orden a un técnico en el mapa | ✅ real, contra producción |
 | `android-tasks.png` | Lista de órdenes en la app del técnico | ⏳ pendiente |
 | `android-offline.gif` | Badge "pendiente" → "sincronizado" al volver la red | ⏳ pendiente |
-| `client-tracking.gif` | Pin del técnico moviéndose + ETA bajando | ⏳ pendiente |
+| `client-tracking.gif` | Login/registro → solicitar servicio con GPS → seguimiento en vivo | ✅ real, contra producción |
 
 ---
 
