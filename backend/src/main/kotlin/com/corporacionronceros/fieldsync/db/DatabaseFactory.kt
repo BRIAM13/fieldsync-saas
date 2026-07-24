@@ -2,8 +2,10 @@ package com.corporacionronceros.fieldsync.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.net.URI
 
@@ -11,11 +13,15 @@ import java.net.URI
  * Inicializa la conexión a Postgres (Hikari + Exposed) desde variables de entorno.
  *
  * Acepta tanto una `DATABASE_URL` estilo proveedor (`postgres://user:pass@host:port/db`,
- * como la exponen Neon / Supabase / Render) como una `jdbc:postgresql://...` con
+ * como la exponen Neon / Aiven / Supabase / Render) como una `jdbc:postgresql://...` con
  * `DB_USER` / `DB_PASSWORD` aparte. Si no hay `DATABASE_URL`, devuelve false y el
  * arranque cae al repositorio en memoria (modo desarrollo sin DB).
  */
 object DatabaseFactory {
+
+    /** true si se conectó a Postgres; false en modo en memoria (sin DATABASE_URL). */
+    var isConfigured: Boolean = false
+        private set
 
     fun init(): Boolean {
         val raw = System.getenv("DATABASE_URL")?.takeIf { it.isNotBlank() } ?: return false
@@ -38,7 +44,22 @@ object DatabaseFactory {
                 CompaniesTable, UsersTable, RefreshTokensTable, WorkOrdersTable, TechniciansTable
             )
         }
+        isConfigured = true
         return true
+    }
+
+    /**
+     * Consulta trivial (`SELECT 1`) para el health check. Sirve dos propósitos a la vez:
+     * confirma que la base de datos responde de verdad (antes `/health` no la tocaba), y
+     * genera tráfico real hacia ella — en proveedores cuyo plan gratuito se autoapaga por
+     * inactividad (p. ej. Aiven), un ping periódico a `/health` cuenta como actividad y
+     * evita el apagado. En modo sin DB (`isConfigured == false`) no hay nada que verificar.
+     */
+    suspend fun ping(): Boolean {
+        if (!isConfigured) return true
+        return runCatching {
+            newSuspendedTransaction(Dispatchers.IO) { exec("SELECT 1") }
+        }.isSuccess
     }
 
     private data class Creds(val jdbcUrl: String, val user: String?, val password: String?)

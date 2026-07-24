@@ -53,6 +53,17 @@ class WorkOrderApiTest {
     }
 
     @Test
+    fun `health reports in-memory db when no DATABASE_URL is set`() = testApplication {
+        application { module() }
+        val client = jsonClient()
+        val body: Map<String, String> = client.get("/health").body()
+        // Sin DATABASE_URL el arranque cae al repositorio en memoria (ver Application.module);
+        // el health check no debe fingir una conexión a Postgres que no existe.
+        assertEquals("in-memory", body["db"])
+        assertEquals("ok", body["status"])
+    }
+
+    @Test
     fun `api requires a token`() = testApplication {
         application { module() }
         assertEquals(HttpStatusCode.Unauthorized, client.get("/api/work-orders").status)

@@ -130,28 +130,74 @@ TOKEN=$(curl -s -X POST http://localhost:8080/auth/login \
 curl http://localhost:8080/api/work-orders -H "Authorization: Bearer $TOKEN"
 ```
 
-## Desplegar gratis (portafolio)
+## Desplegar gratis
 
-Combinación sin costo para demos: **Neon** (Postgres) + **Render** (servidor). El repo trae
-[`render.yaml`](../render.yaml) en la raíz (Blueprint de Render) para que el servicio quede
-preconfigurado — solo falta pegar la URL de Neon.
+El backend se despliega con **Render** (servidor) + Postgres de un proveedor gratuito a tu
+elección. El repo trae [`render.yaml`](../render.yaml) en la raíz (Blueprint de Render) para
+que el servicio quede preconfigurado — solo falta pegar la URL de la base de datos.
 
-1. **Neon** ([neon.tech](https://neon.tech)) → crea una cuenta y un proyecto → copia el
-   **connection string** (`postgres://usuario:contraseña@host/db`).
+### Elegir proveedor de Postgres: Neon vs. Aiven
+
+Ambos tienen plan gratuito **recurrente** (sin fecha de vencimiento tipo "trial de 12 meses"),
+pero el mecanismo de límite es distinto y cambia qué estrategia tiene sentido:
+
+| | **Neon** | **Aiven** |
+|---|---|---|
+| Límite | **100 horas-CU al mes** (tope duro) | Sin tope de horas — apaga por inactividad |
+| Al inactividad | Escala a cero en ~5 min (te ahorra horas) | Se apaga tras un rato sin uso (umbral no publicado) |
+| Al agotar el límite | Se suspende hasta el próximo mes | No aplica (no hay contador de horas) |
+| ¿Se puede mantener despierto con un ping? | **No — contraproducente.** Pinguearlo 24/7 agota las 100 h en ~4 días y lo suspende por semanas | **Sí, en teoría** — el ping cuenta como actividad y evita el apagado |
+| Recursos | Variable según CU | 1 CPU / 1 GB RAM / 1 GB storage, fijo |
+
+**Recomendación:** si aceptas cold-starts ocasionales (perfecto para un portafolio), usa
+**Neon** — es el camino más simple, sin trucos. Si quieres exprimir el free tier para que se
+sienta "siempre arriba", usa **Aiven** + el keep-alive descrito abajo — con la salvedad honesta
+de que ningún free tier está pensado para producción real (ver advertencia al final).
+
+1. **Neon** ([neon.tech](https://neon.tech)) o **Aiven** ([aiven.io](https://aiven.io), servicio
+   PostgreSQL, plan **Free**) → crea una cuenta y el servicio → copia el **connection string**
+   (`postgres://usuario:contraseña@host:puerto/db`).
 2. **Render** ([render.com](https://render.com)) → crea una cuenta → *New* → **Blueprint** →
    conecta tu GitHub y selecciona este repo. Render detecta `render.yaml` automáticamente y
    preconfigura el servicio `fieldsync-backend` (Docker, `backend/Dockerfile`, plan free,
    health check en `/health`, `JWT_SECRET` autogenerado).
-3. Antes de confirmar el deploy, pega la `DATABASE_URL` de Neon en el campo que Render deja
-   vacío para esa variable (queda marcada `sync: false` en el blueprint — **nunca va en el
+3. Antes de confirmar el deploy, pega la `DATABASE_URL` (de Neon o Aiven) en el campo que Render
+   deja vacío para esa variable (queda marcada `sync: false` en el blueprint — **nunca va en el
    repo en texto plano**, se pega directo en el dashboard de Render).
 4. Deploy. El backend crea el esquema y siembra los datos demo en el primer arranque.
-5. Prueba: `curl https://<tu-servicio>.onrender.com/health`.
+5. Prueba: `curl https://<tu-servicio>.onrender.com/health` → debe responder
+   `{"status":"ok","db":"connected",...}`.
 
 > ⚠️ En free tier, el **servicio de Render duerme tras ~15 min de inactividad** (cold start en la
-> primera petición) y **Neon escala a cero** cuando está inactiva (despierta en la primera query).
-> Perfecto para demo; para "always-on" real ambos requieren plan de pago. Verifica los términos
-> vigentes de cada proveedor antes de desplegar.
+> primera petición) además del comportamiento propio de tu proveedor de Postgres (tabla arriba).
+> Verifica los términos vigentes de cada proveedor antes de desplegar — cambian seguido.
+
+### Mantener despierto con UptimeRobot (opcional)
+
+`GET /health` no es un simple "sigo vivo": cuando hay Postgres configurado, ejecuta un
+`SELECT 1` real contra la base. Eso significa que pinguearlo periódicamente cumple dos
+funciones a la vez — confirma que el backend **y** la base de datos responden, y genera
+tráfico real hacia la DB, lo cual **evita el auto-apagado en proveedores basados en inactividad
+como Aiven** (en Neon, no lo hagas — ver tabla arriba, es contraproducente por su tope de horas).
+
+1. Crea una cuenta gratis en [UptimeRobot](https://uptimerobot.com).
+2. **Add New Monitor** → tipo `HTTP(s)` → URL: `https://<tu-servicio>.onrender.com/health`.
+3. Intervalo: **cada 5 minutos** (cómodamente por debajo de los ~15 min de Render y de
+   cualquier umbral razonable de inactividad de Aiven, que no publican un número exacto).
+4. Guarda. UptimeRobot te avisará además si el backend o la DB caen (respuesta ≠ 200).
+
+**Antes de depender de esto para un SaaS real**, dos advertencias sin filtro:
+
+- Es una técnica **común y generalmente tolerada** para mantener despiertos servicios gratuitos,
+  pero **no es un uso oficialmente soportado** — ambos proveedores presentan su plan gratuito
+  como "para explorar/aprender", no para producción continua. No hay garantía de que no limiten
+  o penalicen cuentas que lo hacen 24/7.
+- Aunque se mantenga despierto, el techo de **1 CPU / 1 GB RAM** (Aiven free) sigue siendo el
+  límite real de capacidad para tráfico de verdad.
+- Si esto va a servir a usuarios reales que dependen de la disponibilidad, la alternativa más
+  robusta y barata es un plan pago pequeño (p. ej. Render Starter ~$7/mes + Aiven Developer
+  ~$5/mes, que además **no** se apaga por inactividad) en vez de pelear contra los límites
+  gratuitos con keep-alives.
 
 | Variable | Ejemplo | Notas |
 |----------|---------|-------|
