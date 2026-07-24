@@ -11,6 +11,12 @@ export const routes: Routes = [
     title: 'Ingresar',
   },
   {
+    path: 'register',
+    loadComponent: () =>
+      import('./features/auth/register.component').then((m) => m.RegisterComponent),
+    title: 'Registra tu empresa',
+  },
+  {
     path: 'dispatch',
     canActivate: [authGuard],
     loadComponent: () =>

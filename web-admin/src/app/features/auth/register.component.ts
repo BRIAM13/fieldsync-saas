@@ -5,21 +5,31 @@ import { NgIf } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 
-/** Pantalla de inicio de sesión del panel de despacho. */
+/**
+ * Alta de una empresa nueva (self-onboarding). Crea la Company + el primer
+ * usuario (ADMIN) en una sola llamada y deja la sesión iniciada — desde aquí
+ * el ADMIN ya puede entrar a "Equipo" a agregar a sus trabajadores.
+ */
 @Component({
-  selector: 'fs-login',
+  selector: 'fs-register',
   standalone: true,
   imports: [FormsModule, NgIf, RouterLink],
   template: `
     <div class="wrap">
       <div class="panel">
         <div class="hero">
-          <div class="mark">🔧</div>
-          <h1>FieldSync</h1>
-          <p>Gestión de servicios de campo</p>
+          <div class="mark">🏢</div>
+          <h1>Registra tu empresa</h1>
+          <p>Crea la cuenta de administrador de tu equipo</p>
         </div>
 
         <form class="form" (ngSubmit)="submit()">
+          <label>Nombre de la empresa</label>
+          <input name="companyName" [(ngModel)]="companyName" required />
+
+          <label>Tu nombre</label>
+          <input name="name" [(ngModel)]="name" required />
+
           <label>Correo electrónico</label>
           <input type="email" name="email" [(ngModel)]="email" autocomplete="username" required />
 
@@ -28,24 +38,20 @@ import { AuthService } from '../../core/services/auth.service';
             type="password"
             name="password"
             [(ngModel)]="password"
-            autocomplete="current-password"
+            autocomplete="new-password"
+            minlength="6"
             required
           />
 
           <button type="submit" [disabled]="loading()">
             <span class="spinner" *ngIf="loading()"></span>
-            {{ loading() ? 'Ingresando…' : 'Ingresar' }}
+            {{ loading() ? 'Creando cuenta…' : 'Crear cuenta' }}
           </button>
 
           <p class="err" *ngIf="error()">⚠ {{ error() }}</p>
 
           <div class="hint">
-            Cuenta de demostración<br />
-            <strong>admin&#64;fieldsync.dev</strong> / demo1234
-          </div>
-
-          <div class="hint">
-            ¿Tu empresa aún no tiene cuenta? <a routerLink="/register">Regístrala aquí</a>
+            ¿Ya tienes cuenta? <a routerLink="/login">Ingresa aquí</a>
           </div>
         </form>
       </div>
@@ -59,7 +65,7 @@ import { AuthService } from '../../core/services/auth.service';
       padding: 24px;
     }
     .panel {
-      width: 380px;
+      width: 400px;
       border-radius: 20px;
       overflow: hidden;
       background: var(--fs-surface);
@@ -72,7 +78,7 @@ import { AuthService } from '../../core/services/auth.service';
       text-align: center;
     }
     .mark { font-size: 34px; margin-bottom: 8px; }
-    .hero h1 { margin: 0; color: #fff; font-size: 22px; }
+    .hero h1 { margin: 0; color: #fff; font-size: 20px; }
     .hero p { margin: 4px 0 0; color: rgba(255, 255, 255, 0.85); font-size: 13px; }
 
     .form { display: flex; flex-direction: column; gap: 6px; padding: 28px; }
@@ -119,33 +125,43 @@ import { AuthService } from '../../core/services/auth.service';
       text-align: center;
       line-height: 1.6;
     }
-    .hint strong { color: var(--fs-text-muted); }
     .hint a { color: var(--fs-primary); text-decoration: none; font-weight: 600; }
     .hint a:hover { text-decoration: underline; }
   `],
 })
-export class LoginComponent {
+export class RegisterComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  email = 'admin@fieldsync.dev';
-  password = 'demo1234';
+  companyName = '';
+  name = '';
+  email = '';
+  password = '';
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
   submit(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.auth.login({ email: this.email, password: this.password }).subscribe({
-      next: () => this.router.navigate(['/dispatch']),
-      error: (err: HttpErrorResponse) => {
-        this.error.set(
-          err.status === 0
-            ? 'Sin conexión con el servidor. Verifica tu internet e intenta de nuevo.'
-            : 'Credenciales inválidas',
-        );
-        this.loading.set(false);
-      },
-    });
+    this.auth
+      .register({
+        companyName: this.companyName,
+        name: this.name,
+        email: this.email,
+        password: this.password,
+      })
+      .subscribe({
+        next: () => this.router.navigate(['/dispatch']),
+        error: (err: HttpErrorResponse) => {
+          this.error.set(
+            err.status === 0
+              ? 'Sin conexión con el servidor. Verifica tu internet e intenta de nuevo.'
+              : err.status === 409
+                ? 'Ese correo ya está registrado.'
+                : (err.error?.message ?? 'No se pudo crear la cuenta.'),
+          );
+          this.loading.set(false);
+        },
+      });
   }
 }
