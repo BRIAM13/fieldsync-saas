@@ -2,8 +2,12 @@ package com.corporacionronceros.fieldsync.plugins
 
 import com.corporacionronceros.fieldsync.db.DatabaseFactory
 import com.corporacionronceros.fieldsync.repository.AuthRepository
+import com.corporacionronceros.fieldsync.repository.CustomerRepository
 import com.corporacionronceros.fieldsync.repository.WorkOrderRepository
 import com.corporacionronceros.fieldsync.routes.authRoutes
+import com.corporacionronceros.fieldsync.routes.companyRoutes
+import com.corporacionronceros.fieldsync.routes.customerAuthRoutes
+import com.corporacionronceros.fieldsync.routes.serviceRequestRoutes
 import com.corporacionronceros.fieldsync.routes.trackingRoutes
 import com.corporacionronceros.fieldsync.routes.userRoutes
 import com.corporacionronceros.fieldsync.routes.workOrderRoutes
@@ -21,6 +25,7 @@ import io.ktor.server.routing.routing
 fun Application.configureRouting(
     repository: WorkOrderRepository,
     authRepository: AuthRepository,
+    customerRepository: CustomerRepository,
     trackingService: TrackingService,
     jwtService: JwtService
 ) {
@@ -41,12 +46,20 @@ fun Application.configureRouting(
 
         // Públicas
         authRoutes(authRepository, jwtService)
+        customerAuthRoutes(customerRepository, authRepository, jwtService)
+        companyRoutes(authRepository)
 
-        // Protegidas: exigen un JWT válido; el tenant se resuelve del token, y cada
-        // ruta aplica sus propios roles (RBAC) donde corresponde.
+        // Protegidas (staff): exigen un JWT de staff válido; el tenant se resuelve del token,
+        // y cada ruta aplica sus propios roles (RBAC) donde corresponde.
         authenticate(AUTH_JWT) {
             workOrderRoutes(repository)
             userRoutes(authRepository)
+        }
+
+        // Protegidas (clientes): proveedor de autenticación separado — un token de staff
+        // nunca autentica aquí, y viceversa (ver plugins/Security.kt).
+        authenticate(AUTH_JWT_CUSTOMER) {
+            serviceRequestRoutes(repository, customerRepository)
         }
 
         // WebSocket: valida el token por query param dentro de la ruta

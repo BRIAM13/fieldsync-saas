@@ -5,6 +5,7 @@ import com.corporacionronceros.fieldsync.db.WorkOrdersTable
 import com.corporacionronceros.fieldsync.model.GeoPoint
 import com.corporacionronceros.fieldsync.model.PendingChange
 import com.corporacionronceros.fieldsync.model.Priority
+import com.corporacionronceros.fieldsync.model.ServiceRequestCreate
 import com.corporacionronceros.fieldsync.model.Technician
 import com.corporacionronceros.fieldsync.model.WorkOrder
 import com.corporacionronceros.fieldsync.model.WorkOrderStatus
@@ -91,6 +92,45 @@ class ExposedWorkOrderRepository : WorkOrderRepository {
         applied to rejected
     }
 
+    override suspend fun create(
+        companyId: String,
+        customerId: String,
+        customerName: String,
+        req: ServiceRequestCreate
+    ): WorkOrder = dbQuery {
+        val order = WorkOrder(
+            id = newWorkOrderId(),
+            title = req.title,
+            customerName = customerName,
+            address = req.address,
+            priority = req.priority,
+            status = WorkOrderStatus.UNASSIGNED,
+            scheduledAtEpochMs = System.currentTimeMillis(),
+            location = GeoPoint(req.lat, req.lng),
+            customerId = customerId
+        )
+        WorkOrdersTable.insert {
+            it[id] = order.id
+            it[WorkOrdersTable.companyId] = companyId
+            it[title] = order.title
+            it[WorkOrdersTable.customerName] = order.customerName
+            it[address] = order.address
+            it[priority] = order.priority.name
+            it[status] = order.status.name
+            it[scheduledAtEpochMs] = order.scheduledAtEpochMs
+            it[lat] = order.location?.lat
+            it[lng] = order.location?.lng
+            it[WorkOrdersTable.customerId] = customerId
+        }
+        order
+    }
+
+    override suspend fun byCustomer(companyId: String, customerId: String): List<WorkOrder> = dbQuery {
+        WorkOrdersTable.selectAll().where {
+            (WorkOrdersTable.companyId eq companyId) and (WorkOrdersTable.customerId eq customerId)
+        }.map { it.toWorkOrder() }
+    }
+
     // ---- helpers (dentro de una transacción) ----
 
     private fun fetch(companyId: String, id: String): WorkOrder? =
@@ -126,7 +166,8 @@ class ExposedWorkOrderRepository : WorkOrderRepository {
             status = WorkOrderStatus.valueOf(this[WorkOrdersTable.status]),
             scheduledAtEpochMs = this[WorkOrdersTable.scheduledAtEpochMs],
             location = if (lat != null && lng != null) GeoPoint(lat, lng) else null,
-            assignedTechnicianId = this[WorkOrdersTable.assignedTechnicianId]
+            assignedTechnicianId = this[WorkOrdersTable.assignedTechnicianId],
+            customerId = this[WorkOrdersTable.customerId]
         )
     }
 

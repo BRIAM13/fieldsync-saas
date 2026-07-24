@@ -40,8 +40,15 @@ object DatabaseFactory {
 
         Database.connect(HikariDataSource(hikari))
         transaction {
-            SchemaUtils.create(
-                CompaniesTable, UsersTable, RefreshTokensTable, WorkOrdersTable, TechniciansTable
+            // createMissingTablesAndColumns (no solo create): además de crear tablas nuevas,
+            // agrega columnas nuevas a tablas que YA existen en la DB (p. ej. al desplegar esta
+            // versión sobre el Postgres de producción, que ya tiene `work_orders` creada) —
+            // aditivo e idempotente, nunca borra ni toca datos existentes. CustomersTable va
+            // antes que WorkOrdersTable porque esta última tiene un FK hacia ella.
+            SchemaUtils.createMissingTablesAndColumns(
+                CompaniesTable, CustomersTable, UsersTable,
+                RefreshTokensTable, CustomerRefreshTokensTable,
+                WorkOrdersTable, TechniciansTable
             )
         }
         isConfigured = true

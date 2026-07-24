@@ -19,6 +19,10 @@ fun ApplicationCall.role(): UserRole? =
     principal<JWTPrincipal>()?.payload?.getClaim(JwtService.CLAIM_ROLE)?.asString()
         ?.let { runCatching { UserRole.valueOf(it) }.getOrNull() }
 
+/** true si el claim `role` del token es literalmente "CUSTOMER" (no es un [UserRole]). */
+private fun ApplicationCall.isCustomerRole(): Boolean =
+    principal<JWTPrincipal>()?.payload?.getClaim(JwtService.CLAIM_ROLE)?.asString() == "CUSTOMER"
+
 private class AuthorizedRouteSelector(private val description: String) : RouteSelector() {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int) =
         RouteSelectorEvaluation.Transparent
@@ -38,6 +42,26 @@ fun Route.authorize(vararg roles: UserRole, build: Route.() -> Unit): Route {
     route.intercept(ApplicationCallPipeline.Call) {
         val role = call.role()
         if (role == null || role !in roles) {
+            call.respond(
+                HttpStatusCode.Forbidden,
+                ApiError("Tu rol no tiene permiso para esta acción")
+            )
+            finish()
+        }
+    }
+    route.build()
+    return route
+}
+
+/**
+ * Defensa en profundidad para rutas de cliente: la barrera principal ya es el proveedor
+ * `AUTH_JWT_CUSTOMER` (un token de staff nunca autentica ahí, ver `Security.kt`), pero se
+ * chequea también el claim `role` explícitamente, siguiendo el mismo hábito que [authorize].
+ */
+fun Route.authorizeCustomer(build: Route.() -> Unit): Route {
+    val route = createChild(AuthorizedRouteSelector("CUSTOMER"))
+    route.intercept(ApplicationCallPipeline.Call) {
+        if (!call.isCustomerRole()) {
             call.respond(
                 HttpStatusCode.Forbidden,
                 ApiError("Tu rol no tiene permiso para esta acción")

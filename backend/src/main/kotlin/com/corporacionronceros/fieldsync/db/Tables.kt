@@ -27,6 +27,25 @@ object RefreshTokensTable : Table("refresh_tokens") {
     override val primaryKey = PrimaryKey(token)
 }
 
+/** Clientes finales (no son "staff" — no tienen acceso al panel Angular). */
+object CustomersTable : Table("customers") {
+    val id = varchar("id", 36)
+    val companyId = varchar("company_id", 36).references(CompaniesTable.id).index()
+    val name = varchar("name", 255)
+    val email = varchar("email", 255).uniqueIndex()
+    val phone = varchar("phone", 32).nullable()
+    val passwordHash = varchar("password_hash", 100)
+    override val primaryKey = PrimaryKey(id)
+}
+
+/** Refresh tokens de clientes, separados de los de staff ([RefreshTokensTable]). */
+object CustomerRefreshTokensTable : Table("customer_refresh_tokens") {
+    val token = varchar("token", 64)
+    val customerId = varchar("customer_id", 36).references(CustomersTable.id)
+    val expiresAtEpochMs = long("expires_at_epoch_ms")
+    override val primaryKey = PrimaryKey(token)
+}
+
 object WorkOrdersTable : Table("work_orders") {
     val id = varchar("id", 32)
     val companyId = varchar("company_id", 36).references(CompaniesTable.id).index()
@@ -39,6 +58,8 @@ object WorkOrdersTable : Table("work_orders") {
     val lat = double("lat").nullable()
     val lng = double("lng").nullable()
     val assignedTechnicianId = varchar("assigned_technician_id", 32).nullable()
+    /** Cliente que solicitó la orden (null si la creó el staff manualmente). */
+    val customerId = varchar("customer_id", 36).references(CustomersTable.id).nullable().index()
     override val primaryKey = PrimaryKey(id)
 }
 

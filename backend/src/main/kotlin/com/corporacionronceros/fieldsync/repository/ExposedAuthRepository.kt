@@ -81,6 +81,10 @@ class ExposedAuthRepository : AuthRepository {
             ?.let { Company(it[CompaniesTable.id], it[CompaniesTable.name]) }
     }
 
+    override suspend fun allCompanies(): List<Company> = dbQuery {
+        CompaniesTable.selectAll().map { Company(it[CompaniesTable.id], it[CompaniesTable.name]) }
+    }
+
     override suspend fun createCompanyWithAdmin(
         companyName: String,
         name: String,

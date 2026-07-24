@@ -17,7 +17,8 @@ data class WorkOrder(
     val status: WorkOrderStatus,
     val scheduledAtEpochMs: Long,
     val location: GeoPoint? = null,
-    val assignedTechnicianId: String? = null
+    val assignedTechnicianId: String? = null,
+    val customerId: String? = null
 )
 
 @Serializable

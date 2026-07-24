@@ -11,3 +11,7 @@ fun ApplicationCall.companyId(): String =
 /** Id del usuario autenticado. */
 fun ApplicationCall.userId(): String =
     principal<JWTPrincipal>()!!.payload.getClaim(JwtService.CLAIM_USER_ID).asString()
+
+/** Id del cliente autenticado (rutas bajo AUTH_JWT_CUSTOMER). */
+fun ApplicationCall.customerId(): String =
+    principal<JWTPrincipal>()!!.payload.getClaim(JwtService.CLAIM_CUSTOMER_ID).asString()

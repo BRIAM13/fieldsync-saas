@@ -3,6 +3,7 @@ package com.corporacionronceros.fieldsync.security
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
+import com.corporacionronceros.fieldsync.model.Customer
 import com.corporacionronceros.fieldsync.model.User
 import java.util.Date
 
@@ -35,8 +36,23 @@ class JwtService(
         .withExpiresAt(Date(System.currentTimeMillis() + accessValidityMs))
         .sign(algorithm)
 
+    /**
+     * Access token de **cliente** — deliberadamente sin [CLAIM_USER_ID]: eso hace que este
+     * token nunca autentique bajo el proveedor de staff ([AUTH_JWT] en `Security.kt`), cuyo
+     * `validate` exige ese claim. Un token de cliente solo es válido bajo `AUTH_JWT_CUSTOMER`.
+     */
+    fun generateCustomerAccessToken(customer: Customer): String = JWT.create()
+        .withIssuer(issuer)
+        .withAudience(audience)
+        .withClaim(CLAIM_CUSTOMER_ID, customer.id)
+        .withClaim(CLAIM_COMPANY_ID, customer.companyId)
+        .withClaim(CLAIM_ROLE, "CUSTOMER")
+        .withExpiresAt(Date(System.currentTimeMillis() + accessValidityMs))
+        .sign(algorithm)
+
     companion object {
         const val CLAIM_USER_ID = "userId"
+        const val CLAIM_CUSTOMER_ID = "customerId"
         const val CLAIM_COMPANY_ID = "companyId"
         const val CLAIM_ROLE = "role"
 

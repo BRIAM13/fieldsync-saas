@@ -20,6 +20,9 @@ interface AuthRepository {
     suspend fun emailExists(email: String): Boolean
     suspend fun findByEmail(email: String): UserRecord?
     suspend fun companyById(id: String): Company?
+
+    /** Lista pública de empresas (id + nombre) — usada por el registro de clientes. */
+    suspend fun allCompanies(): List<Company>
     suspend fun createCompanyWithAdmin(
         companyName: String,
         name: String,
@@ -74,6 +77,9 @@ class InMemoryAuthRepository : AuthRepository {
 
     override suspend fun companyById(id: String): Company? =
         mutex.withLock { companies[id] }
+
+    override suspend fun allCompanies(): List<Company> =
+        mutex.withLock { companies.values.toList() }
 
     override suspend fun createCompanyWithAdmin(
         companyName: String,

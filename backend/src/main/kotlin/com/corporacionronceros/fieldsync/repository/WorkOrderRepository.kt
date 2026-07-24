@@ -1,11 +1,14 @@
 package com.corporacionronceros.fieldsync.repository
 
+import com.corporacionronceros.fieldsync.model.GeoPoint
 import com.corporacionronceros.fieldsync.model.PendingChange
+import com.corporacionronceros.fieldsync.model.ServiceRequestCreate
 import com.corporacionronceros.fieldsync.model.Technician
 import com.corporacionronceros.fieldsync.model.WorkOrder
 import com.corporacionronceros.fieldsync.model.WorkOrderStatus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.UUID
 
 /**
  * Puerto de persistencia de órdenes, **con conciencia de tenant**: toda operación recibe el
@@ -19,7 +22,21 @@ interface WorkOrderRepository {
     suspend fun assign(companyId: String, id: String, technicianId: String): WorkOrder?
     suspend fun technicians(companyId: String): List<Technician>
     suspend fun applyPending(companyId: String, changes: List<PendingChange>): Pair<Int, List<String>>
+
+    /** Un cliente solicita un servicio: crea la orden en su propia empresa, sin asignar. */
+    suspend fun create(
+        companyId: String,
+        customerId: String,
+        customerName: String,
+        req: ServiceRequestCreate
+    ): WorkOrder
+
+    /** Solicitudes de UN cliente dentro de su empresa (para que trackee las suyas). */
+    suspend fun byCustomer(companyId: String, customerId: String): List<WorkOrder>
 }
+
+/** Id de 32 caracteres (cabe exacto en la columna `varchar(32)`) para órdenes creadas en vivo. */
+internal fun newWorkOrderId(): String = UUID.randomUUID().toString().replace("-", "")
 
 /** Implementación en memoria, segura para concurrencia con un Mutex de coroutines. */
 class InMemoryWorkOrderRepository : WorkOrderRepository {
@@ -81,4 +98,29 @@ class InMemoryWorkOrderRepository : WorkOrderRepository {
             }
             applied to rejected
         }
+
+    override suspend fun create(
+        companyId: String,
+        customerId: String,
+        customerName: String,
+        req: ServiceRequestCreate
+    ): WorkOrder = mutex.withLock {
+        val order = WorkOrder(
+            id = newWorkOrderId(),
+            title = req.title,
+            customerName = customerName,
+            address = req.address,
+            priority = req.priority,
+            status = WorkOrderStatus.UNASSIGNED,
+            scheduledAtEpochMs = System.currentTimeMillis(),
+            location = GeoPoint(req.lat, req.lng),
+            customerId = customerId
+        )
+        orders[order.id] = companyId to order
+        order
+    }
+
+    override suspend fun byCustomer(companyId: String, customerId: String): List<WorkOrder> = mutex.withLock {
+        orders.values.filter { it.first == companyId && it.second.customerId == customerId }.map { it.second }
+    }
 }
