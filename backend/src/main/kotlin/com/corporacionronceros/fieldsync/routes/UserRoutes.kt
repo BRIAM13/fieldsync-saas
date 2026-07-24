@@ -12,11 +12,16 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 
-/** Gestión de usuarios dentro del tenant. Solo el ADMIN puede crear usuarios. */
+/** Gestión de usuarios dentro del tenant. Solo el ADMIN puede ver y crear usuarios. */
 fun Route.userRoutes(authRepository: AuthRepository) {
     authorize(UserRole.ADMIN) {
+        get("/api/users") {
+            call.respond(authRepository.listUsers(call.companyId()))
+        }
+
         post("/api/users") {
             val req = call.receive<CreateUserRequest>()
             if (req.email.isBlank() || req.password.length < 6) {

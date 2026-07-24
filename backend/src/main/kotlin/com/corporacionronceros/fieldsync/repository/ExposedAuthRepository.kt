@@ -62,6 +62,11 @@ class ExposedAuthRepository : AuthRepository {
         user
     }
 
+    override suspend fun listUsers(companyId: String): List<User> = dbQuery {
+        UsersTable.selectAll().where { UsersTable.companyId eq companyId }
+            .map { it.toUserRecord().user }
+    }
+
     override suspend fun emailExists(email: String): Boolean = dbQuery {
         UsersTable.selectAll().where { UsersTable.email eq email.lowercase() }.any()
     }

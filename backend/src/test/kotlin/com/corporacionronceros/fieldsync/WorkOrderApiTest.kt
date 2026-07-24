@@ -7,6 +7,7 @@ import com.corporacionronceros.fieldsync.model.LoginRequest
 import com.corporacionronceros.fieldsync.model.RefreshRequest
 import com.corporacionronceros.fieldsync.model.RegisterRequest
 import com.corporacionronceros.fieldsync.model.StatusUpdateRequest
+import com.corporacionronceros.fieldsync.model.User
 import com.corporacionronceros.fieldsync.model.UserRole
 import com.corporacionronceros.fieldsync.model.WorkOrder
 import com.corporacionronceros.fieldsync.model.WorkOrderStatus
@@ -170,6 +171,23 @@ class WorkOrderApiTest {
             setBody(body)
         }
         assertEquals(HttpStatusCode.Created, adminTry.status)
+    }
+
+    @Test
+    fun `admin can list users of their company, technician cannot (RBAC)`() = testApplication {
+        application { module() }
+        val client = jsonClient()
+        val adminToken = client.loginAs(SeedData.DEMO_ADMIN_EMAIL)
+        val techToken = client.loginAs(SeedData.DEMO_TECH_EMAIL)
+
+        val techTry = client.get("/api/users") { bearerAuth(techToken) }
+        assertEquals(HttpStatusCode.Forbidden, techTry.status)
+
+        val users: List<User> = client.get("/api/users") { bearerAuth(adminToken) }.body()
+        // Los 3 usuarios semilla (admin/dispatcher/técnico) de la empresa demo.
+        assertTrue(users.any { it.email == SeedData.DEMO_ADMIN_EMAIL })
+        assertTrue(users.any { it.email == SeedData.DEMO_DISPATCHER_EMAIL })
+        assertTrue(users.any { it.email == SeedData.DEMO_TECH_EMAIL })
     }
 
     @Test

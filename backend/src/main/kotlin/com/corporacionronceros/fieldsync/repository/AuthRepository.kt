@@ -36,6 +36,9 @@ interface AuthRepository {
         role: UserRole
     ): User?
 
+    /** Lista los usuarios de una empresa (sin el hash de contraseña). */
+    suspend fun listUsers(companyId: String): List<User>
+
     /** Emite un refresh token para el usuario y lo persiste con su vencimiento. */
     suspend fun createRefreshToken(userId: String, expiresAtEpochMs: Long): String
 
@@ -108,6 +111,10 @@ class InMemoryAuthRepository : AuthRepository {
         )
         users[email.lowercase()] = UserRecord(user, passwordHash)
         user
+    }
+
+    override suspend fun listUsers(companyId: String): List<User> = mutex.withLock {
+        users.values.map { it.user }.filter { it.companyId == companyId }
     }
 
     override suspend fun createRefreshToken(userId: String, expiresAtEpochMs: Long): String =
