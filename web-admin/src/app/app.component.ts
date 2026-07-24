@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { NgIf } from '@angular/common';
 import { AuthService } from './core/services/auth.service';
+import { CustomerAuthService } from './core/services/customer-auth.service';
 import { ConnectivityService } from './core/services/connectivity.service';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -10,7 +11,11 @@ const ROLE_LABELS: Record<string, string> = {
   TECHNICIAN: 'Técnico',
 };
 
-/** Shell del panel: cabecera con marca, navegación y sesión activa, y <router-outlet>. */
+/**
+ * Shell del panel: cabecera con marca, navegación y sesión activa, y <router-outlet>.
+ * Convive con **dos** identidades independientes (staff y cliente, ver [AuthService] y
+ * [CustomerAuthService]) — la cabecera se adapta a la que esté activa.
+ */
 @Component({
   selector: 'fs-root',
   standalone: true,
@@ -24,26 +29,30 @@ const ROLE_LABELS: Record<string, string> = {
         <span class="spinner"></span> No se pudo conectar con el servidor — reintentando…
       </div>
 
-      <header *ngIf="auth.isAuthenticated()">
+      <header *ngIf="auth.isAuthenticated() || customerAuth.isAuthenticated()">
         <div class="brand">
           <div class="brand-mark">FS</div>
           <div>
             <div class="brand-name">FieldSync</div>
-            <div class="brand-sub">Panel de despacho</div>
+            <div class="brand-sub">{{ auth.isAuthenticated() ? 'Panel de despacho' : 'Portal de cliente' }}</div>
           </div>
         </div>
 
-        <nav>
+        <nav *ngIf="auth.isAuthenticated()">
           <a routerLink="/dispatch" routerLinkActive="active">Mapa</a>
           <a routerLink="/orders" routerLinkActive="active">Órdenes</a>
           <a *ngIf="auth.user()?.role === 'ADMIN'" routerLink="/team" routerLinkActive="active">Equipo</a>
+        </nav>
+        <nav *ngIf="!auth.isAuthenticated() && customerAuth.isAuthenticated()">
+          <a routerLink="/portal" routerLinkActive="active">Mis solicitudes</a>
+          <a routerLink="/portal/new" routerLinkActive="active">Nueva solicitud</a>
         </nav>
 
         <div class="session">
           <div class="avatar">{{ initials() }}</div>
           <div class="who">
-            <div class="who-name">{{ auth.user()?.name }}</div>
-            <div class="who-role">{{ roleLabel() }}</div>
+            <div class="who-name">{{ sessionName() }}</div>
+            <div class="who-role">{{ sessionRole() }}</div>
           </div>
           <button class="logout" (click)="logout()" title="Cerrar sesión" aria-label="Cerrar sesión">
             ⏻
@@ -51,7 +60,7 @@ const ROLE_LABELS: Record<string, string> = {
         </div>
       </header>
 
-      <main [class.with-header]="auth.isAuthenticated()">
+      <main [class.with-header]="auth.isAuthenticated() || customerAuth.isAuthenticated()">
         <router-outlet />
       </main>
     </div>
@@ -147,11 +156,23 @@ const ROLE_LABELS: Record<string, string> = {
 })
 export class AppComponent {
   readonly auth = inject(AuthService);
+  readonly customerAuth = inject(CustomerAuthService);
   readonly connectivity = inject(ConnectivityService);
   private readonly router = inject(Router);
 
+  sessionName(): string {
+    return this.auth.isAuthenticated()
+      ? (this.auth.user()?.name ?? '')
+      : (this.customerAuth.customer()?.name ?? '');
+  }
+
+  sessionRole(): string {
+    if (this.auth.isAuthenticated()) return this.roleLabel();
+    return this.customerAuth.isAuthenticated() ? 'Cliente' : '';
+  }
+
   initials(): string {
-    const name = this.auth.user()?.name ?? '';
+    const name = this.sessionName();
     const parts = name.split(' ').filter(Boolean).slice(0, 2);
     return parts.map((p) => p[0]).join('').toUpperCase() || '?';
   }
@@ -162,7 +183,11 @@ export class AppComponent {
   }
 
   logout(): void {
-    this.auth.logout();
+    if (this.auth.isAuthenticated()) {
+      this.auth.logout();
+    } else {
+      this.customerAuth.logout();
+    }
     this.router.navigate(['/login']);
   }
 }

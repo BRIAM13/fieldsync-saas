@@ -30,6 +30,8 @@ export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
+  /** Honeypot: campo oculto en el form real; si llega no-vacío, se trata como bot. */
+  website?: string;
 }
 
 /** Cuerpo de POST /api/users — el ADMIN crea un usuario dentro de su propia empresa. */

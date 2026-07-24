@@ -6,3 +6,6 @@
  * `http://localhost:8080` — no lo dejes así al commitear.
  */
 export const API_BASE = 'https://fieldsync-backend-cipm.onrender.com';
+
+/** Misma base que API_BASE, pero con esquema ws(s) — para el WebSocket de tracking. */
+export const WS_BASE = API_BASE.replace(/^http/, 'ws');
