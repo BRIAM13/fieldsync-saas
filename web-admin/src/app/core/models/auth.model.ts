@@ -31,3 +31,11 @@ export interface RegisterRequest {
   email: string;
   password: string;
 }
+
+/** Cuerpo de POST /api/users — el ADMIN crea un usuario dentro de su propia empresa. */
+export interface CreateUserRequest {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 /** Rutas del panel: /login pública; el resto protegido por el guard de sesión. */
 export const routes: Routes = [
@@ -22,6 +23,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/work-orders/work-orders.component').then((m) => m.WorkOrdersComponent),
     title: 'Órdenes de trabajo',
+  },
+  {
+    path: 'team',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () =>
+      import('./features/users/user-management.component').then((m) => m.UserManagementComponent),
+    title: 'Equipo',
   },
   { path: '', redirectTo: 'dispatch', pathMatch: 'full' },
   { path: '**', redirectTo: 'dispatch' },

@@ -28,6 +28,7 @@ const ROLE_LABELS: Record<string, string> = {
         <nav>
           <a routerLink="/dispatch" routerLinkActive="active">Mapa</a>
           <a routerLink="/orders" routerLinkActive="active">Órdenes</a>
+          <a *ngIf="auth.user()?.role === 'ADMIN'" routerLink="/team" routerLinkActive="active">Equipo</a>
         </nav>
 
         <div class="session">
