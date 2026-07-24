@@ -133,8 +133,9 @@ curl http://localhost:8080/api/work-orders -H "Authorization: Bearer $TOKEN"
 ## Desplegar gratis
 
 > ✅ **Ya desplegado:** [fieldsync-backend-cipm.onrender.com](https://fieldsync-backend-cipm.onrender.com/health)
-> — Render + Aiven Postgres, verificado en vivo (health check, login, API autenticada). Los tres
-> clientes ya apuntan aquí por defecto. Lo que sigue documenta cómo se hizo / cómo replicarlo.
+> — Render + Aiven Postgres, verificado en vivo (health check, login, API autenticada) **y con
+> monitoreo activo** (UptimeRobot, cada 5 min, estado **Up**). Los tres clientes ya apuntan aquí
+> por defecto. Lo que sigue documenta cómo se hizo / cómo replicarlo.
 
 El backend se despliega con **Render** (servidor) + Postgres de un proveedor gratuito a tu
 elección. El repo trae [`render.yaml`](../render.yaml) en la raíz (Blueprint de Render) para
@@ -189,6 +190,19 @@ como Aiven** (en Neon, no lo hagas — ver tabla arriba, es contraproducente por
 3. Intervalo: **cada 5 minutos** (cómodamente por debajo de los ~15 min de Render y de
    cualquier umbral razonable de inactividad de Aiven, que no publican un número exacto).
 4. Guarda. UptimeRobot te avisará además si el backend o la DB caen (respuesta ≠ 200).
+
+> ⚠️ **Gotcha real que nos pasó**: el monitor `HTTP(s)` de UptimeRobot pinguea con **`HEAD`**
+> por defecto, no `GET`. Una ruta de Ktor registrada solo con `get("/health") { ... }` no
+> responde a `HEAD` — UptimeRobot marcaba el servicio como "Abajo" con `405 Method Not Allowed`
+> en cada chequeo, aunque `GET /health` funcionara perfecto en el navegador o con `curl`. El
+> backend ya trae el fix (`install(AutoHeadResponse)` en `plugins/Monitoring.kt`, responde
+> `HEAD` automáticamente en toda ruta `GET`); si escribes una ruta nueva pensada para un monitor
+> externo, verifica también con `curl -I` (`HEAD`), no solo con `curl` (`GET`) — es fácil que
+> pase el chequeo manual y falle igual con el monitor real.
+>
+> **Confirma que quedó bien**: en el dashboard de UptimeRobot, el estado debe decir **Up** en
+> verde y "Últimas 24 horas" en 100% — no te fíes solo de que `/health` responda rápido a
+> mano, eso no prueba que el monitor mismo esté contento.
 
 **Antes de depender de esto para un SaaS real**, dos advertencias sin filtro:
 
