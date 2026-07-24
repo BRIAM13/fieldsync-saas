@@ -33,7 +33,7 @@ Tres aplicaciones sobre un modelo de dominio común:
 |-------|---------|-------|-----|
 | [`android-app/`](android-app/) | Técnico en la calle | **Kotlin** · Clean Arch + MVVM · Compose · Room · WorkManager | Recibe, ejecuta y cierra órdenes **offline-first** |
 | [`web-admin/`](web-admin/) | Despachador / admin | **Angular 18** · TypeScript · RxJS | Asigna tareas sobre un mapa |
-| [`client-app/`](client-app/) | Cliente final | **React Native** (Expo) | Sigue a su técnico **en tiempo real** |
+| [`client-app/`](client-app/) | Cliente final | **React Native** (Expo) | Solicita un servicio (con GPS) y sigue a su técnico **en tiempo real** |
 | [`backend/`](backend/) | — (API compartida) | **Ktor** · Kotlin · WebSockets | Conecta las tres apps: REST + tiempo real |
 | [`marketing/`](marketing/) | — | **HyperFrames** (HTML/CSS/GSAP) | Video promocional → MP4 |
 

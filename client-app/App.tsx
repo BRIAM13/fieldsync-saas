@@ -1,16 +1,12 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
-import TrackingScreen from './src/screens/TrackingScreen';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import RootNavigator from './src/navigation/RootNavigator';
 
-/** Punto de entrada de la app del cliente. */
+/** Punto de entrada de la app del cliente: navegación real (login → solicitudes → tracking). */
 export default function App() {
   return (
-    <SafeAreaView style={styles.root}>
-      <TrackingScreen />
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <RootNavigator />
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f172a' },
-});

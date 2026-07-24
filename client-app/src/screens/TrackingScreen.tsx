@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../navigation/RootNavigator';
 import { useTechnicianTracking } from '../services/TrackingService';
-import { ensureAccessToken } from '../services/AuthService';
+import { ensureAccessToken } from '../services/CustomerAuthService';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'Tracking'>;
 
 /**
- * Pantalla que ve el cliente final: sigue a su técnico en tiempo real y ve el ETA.
- * Reutiliza el token persistido (renovándolo si hace falta) y abre el WebSocket autorizado.
+ * Pantalla que ve el cliente final: sigue a su técnico en tiempo real y ve el ETA de
+ * la orden que eligió en "Mis solicitudes". Reutiliza el token de cliente persistido
+ * (renovándolo si hace falta) y abre el WebSocket autorizado.
  */
-export default function TrackingScreen() {
+export default function TrackingScreen({ route }: Props) {
+  const { orderId } = route.params;
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
@@ -16,7 +22,7 @@ export default function TrackingScreen() {
       .catch((e) => console.warn('No se pudo autenticar', e));
   }, []);
 
-  const position = useTechnicianTracking('WO-1042', token);
+  const position = useTechnicianTracking(orderId, token);
 
   return (
     <View style={styles.container}>
