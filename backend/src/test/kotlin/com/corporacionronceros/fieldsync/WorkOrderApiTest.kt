@@ -16,6 +16,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.request.head
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -51,6 +52,13 @@ class WorkOrderApiTest {
         application { module() }
         assertEquals(HttpStatusCode.OK, client.get("/health").status)
     }
+
+    @Test
+    fun `HEAD health does not 405 (monitores de uptime como UptimeRobot lo usan por defecto)`() =
+        testApplication {
+            application { module() }
+            assertEquals(HttpStatusCode.OK, client.head("/health").status)
+        }
 
     @Test
     fun `health reports in-memory db when no DATABASE_URL is set`() = testApplication {

@@ -56,6 +56,10 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
 
+    // Responde HEAD automáticamente en toda ruta GET (p. ej. /health) — lo necesitan
+    // los monitores de uptime (UptimeRobot, etc.) que pingean con HEAD por defecto.
+    implementation("io.ktor:ktor-server-auto-head-response-jvm:$ktor_version")
+
     // Tests
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktor_version")
     testImplementation("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
