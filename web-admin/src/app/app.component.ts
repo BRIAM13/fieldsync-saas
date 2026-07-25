@@ -151,7 +151,8 @@ const ROLE_LABELS: Record<string, string> = {
     }
     .logout:hover { border-color: var(--fs-danger); color: var(--fs-danger); background: rgba(220, 38, 38, 0.08); }
 
-    main { flex: 1; padding: 28px; max-width: 1200px; width: 100%; margin: 0 auto; }
+    main { flex: 1; width: 100%; }
+    main.with-header { padding: 28px; max-width: 1200px; margin: 0 auto; }
   `],
 })
 export class AppComponent {

@@ -19,6 +19,10 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
  * patrón visual de las referencias, en el tema oscuro de FieldSync). Reemplaza los antiguos
  * `login.component.ts`/`register.component.ts` — ahora también sirve a los clientes, que antes
  * solo podían entrar desde la app móvil.
+ *
+ * El tamaño de la tarjeta está atado a `100dvh` (nunca a un alto fijo adivinado), así que es
+ * físicamente imposible que dispare scroll de página: siempre cabe en la ventana real del
+ * usuario. El deslizamiento usa `transform` (no `left`) para animación por GPU.
  */
 @Component({
   selector: 'fs-auth-gateway',
@@ -28,32 +32,48 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
     <div class="wrap">
       <div class="stage">
         <div class="accent-panel" [class.on-left]="mode() === 'register'">
+          <div class="accent-decor" aria-hidden="true"></div>
           <div class="accent-content">
-            <ng-container *ngIf="mode() === 'login'; else toLogin">
+            <div class="accent-block" *ngIf="mode() === 'login'; else toLogin">
               <h2>¿Aún no tienes cuenta?</h2>
               <p>Regístrate para que puedas iniciar sesión</p>
               <button type="button" class="ghost-btn" (click)="setMode('register')">Registrarse</button>
-            </ng-container>
+            </div>
             <ng-template #toLogin>
-              <h2>¿Ya tienes una cuenta?</h2>
-              <p>Inicia sesión para entrar al panel</p>
-              <button type="button" class="ghost-btn" (click)="setMode('login')">Iniciar sesión</button>
+              <div class="accent-block">
+                <h2>¿Ya tienes una cuenta?</h2>
+                <p>Inicia sesión para entrar al panel</p>
+                <button type="button" class="ghost-btn" (click)="setMode('login')">Iniciar sesión</button>
+              </div>
             </ng-template>
           </div>
         </div>
 
         <div class="form-card" [class.on-right]="mode() === 'register'">
+          <div class="brand-row">
+            <div class="brand-mark">FS</div>
+            <span class="brand-name">FieldSync</span>
+          </div>
+
           <div class="audience-toggle">
             <div class="toggle-indicator" [class.right]="audience() === 'cliente'"></div>
             <button type="button" [class.active]="audience() === 'empresa'" (click)="setAudience('empresa')">
-              🏢 Empresa
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="3" width="16" height="18" rx="1.2" />
+                <path d="M9 21v-4h6v4M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1" />
+              </svg>
+              Empresa
             </button>
             <button type="button" [class.active]="audience() === 'cliente'" (click)="setAudience('cliente')">
-              🧑 Cliente
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="3.4" />
+                <path d="M5.5 20c0-3.6 3-6.2 6.5-6.2s6.5 2.6 6.5 6.2" />
+              </svg>
+              Cliente
             </button>
           </div>
 
-          <h1>{{ mode() === 'login' ? 'Iniciar sesión' : 'Registrarse' }}</h1>
+          <h1>{{ mode() === 'login' ? 'Iniciar sesión' : 'Crear cuenta' }}</h1>
           <p class="sub">
             {{ audience() === 'empresa' ? 'Panel de administración de tu empresa' : 'Solicita y sigue tus servicios' }}
           </p>
@@ -71,13 +91,13 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
             />
 
             <!-- Registro de empresa: nombre de la empresa -->
-            <ng-container *ngIf="audience() === 'empresa' && mode() === 'register'">
+            <div class="field-group" *ngIf="audience() === 'empresa' && mode() === 'register'">
               <label>Nombre de la empresa</label>
               <input name="companyName" [(ngModel)]="companyName" required />
-            </ng-container>
+            </div>
 
             <!-- Registro de cliente: elegir empresa -->
-            <ng-container *ngIf="audience() === 'cliente' && mode() === 'register'">
+            <div class="field-group" *ngIf="audience() === 'cliente' && mode() === 'register'">
               <label>Empresa</label>
               <div class="company-list">
                 <button
@@ -91,45 +111,49 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
                 </button>
                 <span class="hint" *ngIf="!companies().length">Cargando empresas…</span>
               </div>
-            </ng-container>
+            </div>
 
-            <ng-container *ngIf="mode() === 'register'">
+            <div class="field-group" *ngIf="mode() === 'register'">
               <label>Tu nombre</label>
               <input name="name" [(ngModel)]="name" required />
-            </ng-container>
+            </div>
 
-            <label>Correo electrónico</label>
-            <input type="email" name="email" [(ngModel)]="email" autocomplete="username" required />
-            <p class="tip" *ngIf="audience() === 'empresa' && mode() === 'register' && isGenericEmail()">
-              💡 Tip: usa el correo de tu empresa si tienes uno — mejora la confianza de tus clientes.
+            <div class="field-group">
+              <label>Correo electrónico</label>
+              <input type="email" name="email" [(ngModel)]="email" autocomplete="username" required />
+            </div>
+            <p class="tip field-group" *ngIf="audience() === 'empresa' && mode() === 'register' && isGenericEmail()">
+              Tip: usa el correo de tu empresa si tienes uno — mejora la confianza de tus clientes.
             </p>
 
-            <ng-container *ngIf="audience() === 'cliente' && mode() === 'register'">
+            <div class="field-group" *ngIf="audience() === 'cliente' && mode() === 'register'">
               <label>Teléfono (opcional)</label>
               <input name="phone" [(ngModel)]="phone" />
-            </ng-container>
+            </div>
 
-            <label>Contraseña</label>
-            <input
-              type="password"
-              name="password"
-              [(ngModel)]="password"
-              [autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
-              minlength="6"
-              required
-            />
+            <div class="field-group">
+              <label>Contraseña</label>
+              <input
+                type="password"
+                name="password"
+                [(ngModel)]="password"
+                [autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
+                minlength="6"
+                required
+              />
+            </div>
 
             <button type="submit" class="submit-btn" [disabled]="loading()">
               <span class="spinner" *ngIf="loading()"></span>
               {{ submitLabel() }}
             </button>
 
-            <p class="err" *ngIf="error()">⚠ {{ error() }}</p>
+            <p class="err field-group" *ngIf="error()">⚠ {{ error() }}</p>
 
-            <div class="hint-box" *ngIf="mode() === 'login'">
-              Cuenta de demostración<br />
+            <p class="demo-hint field-group" *ngIf="mode() === 'login'">
+              Cuenta de demostración:
               <strong>{{ audience() === 'empresa' ? 'admin@fieldsync.dev' : 'cliente@fieldsync.dev' }}</strong> / demo1234
-            </div>
+            </p>
           </form>
         </div>
       </div>
@@ -137,19 +161,21 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
   `,
   styles: [`
     .wrap {
-      min-height: 100vh;
+      height: 100vh;
+      height: 100dvh;
       display: grid;
       place-items: center;
-      padding: 24px;
+      padding: 16px;
+      overflow: hidden;
     }
 
     .stage {
       position: relative;
-      width: min(860px, 100%);
-      height: min(600px, 90vh);
-      border-radius: 22px;
+      width: min(880px, calc(100vw - 32px));
+      height: min(660px, calc(100dvh - 32px));
+      border-radius: 20px;
       overflow: hidden;
-      box-shadow: var(--fs-shadow);
+      box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
       background: var(--fs-bg);
     }
 
@@ -161,28 +187,57 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       height: 100%;
       z-index: 1;
       background: linear-gradient(150deg, var(--fs-primary), var(--fs-primary-dark) 70%);
+      background-size: 160% 160%;
+      animation: gradientDrift 12s ease-in-out infinite alternate;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 32px;
-      transition: left 0.65s cubic-bezier(0.65, 0, 0.35, 1);
+      transform: translateX(0);
+      transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+      will-change: transform;
     }
-    .accent-panel.on-left { left: 0; }
-    .accent-content { color: #fff; max-width: 300px; }
-    .accent-content h2 { margin: 0 0 7px; font-size: 21px; font-family: 'Space Grotesk', sans-serif; }
-    .accent-content p { margin: 0 0 16px; color: rgba(255, 255, 255, 0.85); font-size: 13px; line-height: 1.45; }
+    .accent-panel.on-left { transform: translateX(-81.8182%); }
+
+    .accent-decor { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+    .accent-decor::before,
+    .accent-decor::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(40px);
+    }
+    .accent-decor::before {
+      width: 190px; height: 190px; top: -70px; right: -50px;
+      background: rgba(255, 255, 255, 0.14);
+    }
+    .accent-decor::after {
+      width: 150px; height: 150px; bottom: -55px; left: -35px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    @keyframes gradientDrift {
+      from { background-position: 0% 0%; }
+      to { background-position: 100% 100%; }
+    }
+
+    .accent-content { position: relative; color: #fff; max-width: 300px; }
+    .accent-block { animation: fieldIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .accent-content h2 { margin: 0 0 8px; font-size: 22px; font-weight: 700; font-family: 'Space Grotesk', sans-serif; }
+    .accent-content p { margin: 0 0 18px; color: rgba(255, 255, 255, 0.85); font-size: 13.5px; line-height: 1.5; }
     .ghost-btn {
       background: transparent;
-      border: 1.5px solid #fff;
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
       color: #fff;
-      padding: 9px 20px;
+      padding: 10px 22px;
       border-radius: 10px;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 13.5px;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.2s, transform 0.2s, border-color 0.2s;
     }
-    .ghost-btn:hover { background: rgba(255, 255, 255, 0.12); }
+    .ghost-btn:hover { background: rgba(255, 255, 255, 0.14); border-color: #fff; transform: translateY(-1px); }
+    .ghost-btn:active { transform: translateY(0); }
 
     .form-card {
       position: absolute;
@@ -192,11 +247,23 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       height: 100%;
       z-index: 2;
       background: var(--fs-surface);
-      padding: 26px 36px;
+      padding: 28px 36px;
       overflow-y: auto;
-      transition: left 0.65s cubic-bezier(0.65, 0, 0.35, 1);
+      transform: translateX(0);
+      transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+      will-change: transform;
     }
-    .form-card.on-right { left: 45%; }
+    .form-card.on-right { transform: translateX(81.8182%); }
+
+    .brand-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .brand-mark {
+      width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--fs-primary), var(--fs-primary-dark));
+      display: grid; place-items: center;
+      color: #fff; font-weight: 700; font-size: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .brand-name { font-size: 12.5px; font-weight: 600; color: var(--fs-text-muted); letter-spacing: 0.01em; }
 
     .audience-toggle {
       position: relative;
@@ -205,13 +272,17 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       border: 1px solid var(--fs-border);
       border-radius: 100px;
       padding: 4px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
       flex-shrink: 0;
     }
     .audience-toggle button {
       position: relative;
       z-index: 1;
       flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       background: transparent;
       border: 0;
       padding: 9px 0;
@@ -220,8 +291,9 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       font-weight: 600;
       color: var(--fs-text-muted);
       cursor: pointer;
-      transition: color 0.2s;
+      transition: color 0.25s;
     }
+    .audience-toggle button svg { width: 14px; height: 14px; flex-shrink: 0; }
     .audience-toggle button.active { color: #fff; }
     .toggle-indicator {
       position: absolute;
@@ -231,33 +303,46 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       height: calc(100% - 8px);
       background: var(--fs-primary);
       border-radius: 100px;
-      transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+      transition: transform 0.35s cubic-bezier(0.65, 0, 0.35, 1);
     }
     .toggle-indicator.right { transform: translateX(100%); }
 
-    h1 { margin: 0; font-size: 21px; font-family: 'Space Grotesk', sans-serif; }
-    .sub { margin: 3px 0 14px; color: var(--fs-text-faint); font-size: 12.5px; }
+    h1 { margin: 0; font-size: 22px; font-weight: 700; font-family: 'Space Grotesk', sans-serif; }
+    .sub { margin: 4px 0 16px; color: var(--fs-text-faint); font-size: 12.5px; }
 
-    form { display: flex; flex-direction: column; gap: 2px; }
-    label { font-size: 11.5px; color: var(--fs-text-muted); margin-top: 7px; font-weight: 500; }
+    form { display: flex; flex-direction: column; }
+
+    @keyframes fieldIn {
+      from { opacity: 0; transform: translateY(7px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .field-group { animation: fieldIn 0.35s cubic-bezier(0.16, 1, 0.3, 1); margin-top: 10px; }
+    .field-group:first-child { margin-top: 0; }
+
+    label { display: block; font-size: 11.5px; color: var(--fs-text-muted); margin-bottom: 5px; font-weight: 500; }
     input {
-      padding: 8px 12px;
+      width: 100%;
+      padding: 9px 12px;
       border-radius: 9px;
       border: 1px solid var(--fs-border);
       background: var(--fs-bg);
       color: var(--fs-text);
       font-size: 13.5px;
-      transition: border-color 0.15s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    input:focus { outline: none; border-color: var(--fs-primary); }
+    input:focus {
+      outline: none;
+      border-color: var(--fs-primary);
+      box-shadow: 0 0 0 3px var(--fs-primary-light);
+    }
 
     .honeypot { position: absolute; left: -9999px; width: 0; height: 0; opacity: 0; pointer-events: none; }
 
-    .tip { margin: 4px 0 0; font-size: 10.5px; color: #facc15; line-height: 1.35; }
+    .tip { font-size: 10.5px; color: #facc15; line-height: 1.4; margin: 6px 0 0 !important; }
 
     .company-list { display: flex; flex-wrap: wrap; gap: 6px; }
     .company-chip {
-      padding: 5px 11px;
+      padding: 6px 12px;
       border-radius: 100px;
       background: var(--fs-bg);
       border: 1px solid var(--fs-border);
@@ -265,8 +350,9 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       font-size: 11.5px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: all 0.2s;
     }
+    .company-chip:hover { border-color: var(--fs-primary); color: var(--fs-text); }
     .company-chip.selected {
       background: var(--fs-primary-light);
       border-color: var(--fs-primary);
@@ -275,8 +361,8 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
     .hint { color: var(--fs-text-faint); font-size: 11.5px; }
 
     .submit-btn {
-      margin-top: 14px;
-      padding: 10px;
+      margin-top: 18px;
+      padding: 11px;
       border: 0;
       border-radius: 9px;
       background: var(--fs-primary);
@@ -284,34 +370,39 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       cursor: pointer;
       font-weight: 700;
       font-size: 13.5px;
-      transition: background 0.15s;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
     }
-    .submit-btn:hover:not(:disabled) { background: var(--fs-primary-dark); }
+    .submit-btn:hover:not(:disabled) {
+      background: var(--fs-primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.55);
+    }
+    .submit-btn:active:not(:disabled) { transform: translateY(0); }
     .submit-btn:disabled { opacity: 0.6; cursor: default; }
 
-    .err { color: #f87171; font-size: 12.5px; margin: 8px 0 0; }
+    .err { color: #f87171; font-size: 12.5px; margin: 10px 0 0 !important; }
 
-    .hint-box {
-      margin-top: 12px;
-      padding: 8px;
-      border-radius: 9px;
-      background: var(--fs-surface-2);
-      color: var(--fs-text-faint);
-      font-size: 11.5px;
+    .demo-hint {
+      margin: 16px 0 0 !important;
+      padding-top: 14px;
+      border-top: 1px solid var(--fs-border);
       text-align: center;
-      line-height: 1.5;
+      font-size: 11.5px;
+      color: var(--fs-text-faint);
+      line-height: 1.6;
     }
-    .hint-box strong { color: var(--fs-text-muted); }
+    .demo-hint strong { color: var(--fs-text-muted); font-weight: 600; }
 
     @media (max-width: 760px) {
-      .stage { height: auto; max-height: none; min-height: 0; }
-      .accent-panel, .form-card { position: relative; width: 100%; left: 0 !important; transition: none; }
-      .accent-panel { order: 2; padding: 24px 22px; }
-      .form-card { order: 1; padding: 24px 22px; }
+      .wrap { height: auto; min-height: 100vh; min-height: 100dvh; padding: 0; overflow-y: auto; }
+      .stage { width: 100%; height: auto; max-height: none; border-radius: 0; box-shadow: none; }
+      .accent-panel, .form-card { position: relative; width: 100%; transform: none !important; transition: none; animation: none; }
+      .accent-panel { order: 2; padding: 28px 24px; }
+      .form-card { order: 1; padding: 28px 24px; overflow-y: visible; }
       .stage { display: flex; flex-direction: column; }
     }
   `],
