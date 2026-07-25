@@ -61,7 +61,7 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 12.5 9.5 18 20 6.5" />
               </svg>
-              <div><strong>12 técnicos</strong><span>activos ahora</span></div>
+              <div><strong>{{ techCount() }} técnicos</strong><span>activos ahora</span></div>
             </div>
           </div>
 
@@ -207,7 +207,10 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       height: min(660px, calc(100dvh - 32px));
       border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
+      box-shadow:
+        0 24px 64px -16px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 0 90px -24px rgba(37, 99, 235, 0.35);
       background: var(--fs-bg);
       animation: stageIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -322,10 +325,16 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       background: rgba(255, 255, 255, 0.14);
       backdrop-filter: blur(8px);
       border: 1px solid rgba(255, 255, 255, 0.28);
-      box-shadow: 0 14px 30px -10px rgba(6, 12, 30, 0.6);
+      box-shadow: 0 14px 30px -10px rgba(6, 12, 30, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.35);
       color: #fff;
       animation: floatCard 6.5s ease-in-out infinite;
       transform-style: preserve-3d;
+      pointer-events: auto;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .float-card:hover {
+      border-color: rgba(255, 255, 255, 0.55);
+      box-shadow: 0 16px 34px -8px rgba(6, 12, 30, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
     .float-card svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.9; }
     .float-card strong { display: block; font-size: 11.5px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
@@ -416,10 +425,11 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       font-weight: 600;
       color: var(--fs-text-muted);
       cursor: pointer;
-      transition: color 0.25s;
+      transition: color 0.25s, transform 0.15s;
     }
     .audience-toggle button svg { width: 14px; height: 14px; flex-shrink: 0; }
     .audience-toggle button.active { color: #fff; }
+    .audience-toggle button:active { transform: scale(0.96); }
     .toggle-indicator {
       position: absolute;
       top: 4px;
@@ -428,7 +438,7 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       height: calc(100% - 8px);
       background: var(--fs-primary);
       border-radius: 100px;
-      transition: transform 0.35s cubic-bezier(0.65, 0, 0.35, 1);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .toggle-indicator.right { transform: translateX(100%); }
 
@@ -478,6 +488,7 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       transition: all 0.2s;
     }
     .company-chip:hover { border-color: var(--fs-primary); color: var(--fs-text); }
+    .company-chip:active { transform: scale(0.96); }
     .company-chip.selected {
       background: var(--fs-primary-light);
       border-color: var(--fs-primary);
@@ -561,6 +572,8 @@ export class AuthGatewayComponent {
   readonly companies = signal<CompanySummary[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  /** Conteo decorativo de la tarjeta "técnicos activos": sube de 0 a 12 al montar la vista. */
+  readonly techCount = signal(0);
 
   companyName = '';
   companyId = '';
@@ -576,6 +589,20 @@ export class AuthGatewayComponent {
       this.companies.set(list);
       if (list.length > 0 && !this.companyId) this.companyId = list[0].id;
     });
+    this.animateTechCount();
+  }
+
+  private animateTechCount(): void {
+    const target = 12;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      this.techCount.set(target);
+      return;
+    }
+    const tick = (n: number) => {
+      this.techCount.set(n);
+      if (n < target) setTimeout(() => tick(n + 1), 55);
+    };
+    setTimeout(() => tick(1), 450);
   }
 
   setMode(mode: Mode): void {

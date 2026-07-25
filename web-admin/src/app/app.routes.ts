@@ -2,14 +2,17 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { customerGuard } from './core/guards/customer.guard';
+import { guestGuard } from './core/guards/guest.guard';
 
 /**
  * Rutas del panel: /login y /register son la misma pantalla dinámica (empresa/cliente,
  * login/registro); el resto está protegido por el guard de la sesión correspondiente.
+ * `guestGuard` evita ver el login a la vez que la cabecera de un usuario ya autenticado.
  */
 export const routes: Routes = [
   {
     path: 'login',
+    canActivate: [guestGuard],
     loadComponent: () =>
       import('./features/auth/auth-gateway.component').then((m) => m.AuthGatewayComponent),
     data: { mode: 'login' },
@@ -17,6 +20,7 @@ export const routes: Routes = [
   },
   {
     path: 'register',
+    canActivate: [guestGuard],
     loadComponent: () =>
       import('./features/auth/auth-gateway.component').then((m) => m.AuthGatewayComponent),
     data: { mode: 'register' },
