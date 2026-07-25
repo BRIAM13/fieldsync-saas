@@ -212,11 +212,28 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
         0 0 0 1px rgba(255, 255, 255, 0.04),
         0 0 90px -24px rgba(37, 99, 235, 0.35);
       background: var(--fs-bg);
-      animation: stageIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      animation:
+        stageIn 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        stageGlow 6s ease-in-out 0.6s infinite;
     }
     @keyframes stageIn {
       from { opacity: 0; transform: translateY(14px) scale(0.98); }
       to { opacity: 1; transform: none; }
+    }
+    /* Resplandor que respira suavemente alrededor de toda la tarjeta. */
+    @keyframes stageGlow {
+      0%, 100% {
+        box-shadow:
+          0 24px 64px -16px rgba(0, 0, 0, 0.55),
+          0 0 0 1px rgba(255, 255, 255, 0.04),
+          0 0 90px -24px rgba(37, 99, 235, 0.35);
+      }
+      50% {
+        box-shadow:
+          0 24px 64px -16px rgba(0, 0, 0, 0.55),
+          0 0 0 1px rgba(255, 255, 255, 0.06),
+          0 0 120px -20px rgba(37, 99, 235, 0.5);
+      }
     }
 
     .accent-panel {
@@ -389,6 +406,19 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
     }
     .form-card.on-right { transform: translateX(81.8182%); }
 
+    /* Mismo barrido de brillo que el panel de acento, pero muy tenue para no
+       interferir con la lectura del formulario. */
+    .form-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      background: linear-gradient(115deg, transparent 44%, rgba(255, 255, 255, 0.05) 50%, transparent 56%);
+      background-size: 250% 250%;
+      animation: sheenSweep 7s ease-in-out 3.2s infinite;
+    }
+
     .brand-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
     .brand-mark {
       width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
@@ -438,6 +468,7 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       height: calc(100% - 8px);
       background: var(--fs-primary);
       border-radius: 100px;
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.65);
       transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .toggle-indicator.right { transform: translateX(100%); }
@@ -497,6 +528,8 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
     .hint { color: var(--fs-text-faint); font-size: 11.5px; }
 
     .submit-btn {
+      position: relative;
+      overflow: hidden;
       margin-top: 18px;
       padding: 11px;
       border: 0;
@@ -512,11 +545,23 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       justify-content: center;
       gap: 8px;
     }
+    .submit-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -60%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transform: skewX(-20deg);
+      transition: left 0.55s ease;
+    }
     .submit-btn:hover:not(:disabled) {
       background: var(--fs-primary-dark);
       transform: translateY(-1px);
       box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.55);
     }
+    .submit-btn:hover:not(:disabled)::after { left: 130%; }
     .submit-btn:active:not(:disabled) { transform: translateY(0); }
     .submit-btn:disabled { opacity: 0.6; cursor: default; }
 
@@ -538,7 +583,7 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       .stage { width: 100%; height: auto; max-height: none; border-radius: 0; box-shadow: none; }
       .accent-panel, .form-card { position: relative; width: 100%; transform: none !important; transition: none; animation: none; }
       .accent-panel { order: 2; padding: 28px 24px; }
-      .accent-panel::after { display: none; }
+      .accent-panel::after, .form-card::after { display: none; }
       .map-scene { display: none; }
       .form-card { order: 1; padding: 28px 24px; overflow-y: visible; justify-content: flex-start; }
       .stage { display: flex; flex-direction: column; }
@@ -550,6 +595,7 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       .accent-decor::before,
       .accent-decor::after,
       .accent-panel::after,
+      .form-card::after,
       .map-lines path,
       .map-pulse::before,
       .float-card,
