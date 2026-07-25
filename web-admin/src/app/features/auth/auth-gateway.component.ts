@@ -33,6 +33,38 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       <div class="stage">
         <div class="accent-panel" [class.on-left]="mode() === 'register'">
           <div class="accent-decor" aria-hidden="true"></div>
+
+          <!-- Escena ilustrada: mapa + tarjetas flotantes con datos en vivo. Puramente
+               decorativa (aria-hidden), en animación continua — no requiere interacción. -->
+          <div class="map-scene" aria-hidden="true">
+            <svg class="map-lines" viewBox="0 0 400 600" preserveAspectRatio="none">
+              <path d="M10,470 L100,420 L170,460 L250,380 L340,415 L390,370" />
+              <path d="M30,110 L115,150 L85,225 L165,255 L230,210" />
+            </svg>
+            <span class="map-pulse" style="top: 36%; left: 60%;"></span>
+
+            <div class="float-card card-1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z" />
+                <circle cx="12" cy="9.5" r="2.3" />
+              </svg>
+              <div><strong>Orden #482</strong><span>En camino</span></div>
+            </div>
+            <div class="float-card card-2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M12 7.5V12l3 2" />
+              </svg>
+              <div><strong>ETA</strong><span>8 min</span></div>
+            </div>
+            <div class="float-card card-3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12.5 9.5 18 20 6.5" />
+              </svg>
+              <div><strong>12 técnicos</strong><span>activos ahora</span></div>
+            </div>
+          </div>
+
           <div class="accent-content">
             <div class="accent-block" *ngIf="mode() === 'login'; else toLogin">
               <h2>¿Aún no tienes cuenta?</h2>
@@ -177,6 +209,11 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       overflow: hidden;
       box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
       background: var(--fs-bg);
+      animation: stageIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes stageIn {
+      from { opacity: 0; transform: translateY(14px) scale(0.98); }
+      to { opacity: 1; transform: none; }
     }
 
     .accent-panel {
@@ -199,6 +236,22 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
     }
     .accent-panel.on-left { transform: translateX(-81.8182%); }
 
+    /* Barrido de brillo diagonal, siempre en marcha — refuerzo de "vidrio" premium. */
+    .accent-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.12) 50%, transparent 58%);
+      background-size: 250% 250%;
+      animation: sheenSweep 7s ease-in-out infinite;
+    }
+    @keyframes sheenSweep {
+      0% { background-position: 220% 0%; }
+      55%, 100% { background-position: -60% 0%; }
+    }
+
     .accent-decor { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
     .accent-decor::before,
     .accent-decor::after {
@@ -210,18 +263,87 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
     .accent-decor::before {
       width: 190px; height: 190px; top: -70px; right: -50px;
       background: rgba(255, 255, 255, 0.14);
+      animation: driftA 9s ease-in-out infinite alternate;
     }
     .accent-decor::after {
       width: 150px; height: 150px; bottom: -55px; left: -35px;
       background: rgba(255, 255, 255, 0.08);
+      animation: driftB 11s ease-in-out infinite alternate;
     }
+    @keyframes driftA { from { transform: translate(0, 0); } to { transform: translate(-16px, 18px); } }
+    @keyframes driftB { from { transform: translate(0, 0); } to { transform: translate(14px, -12px); } }
 
     @keyframes gradientDrift {
       from { background-position: 0% 0%; }
       to { background-position: 100% 100%; }
     }
 
-    .accent-content { position: relative; color: #fff; max-width: 300px; }
+    /* Escena de mapa: rutas dibujándose, punto de ubicación pulsando, tarjetas de UI
+       flotando con un ligero giro 3D — todo en bucle automático, sin necesidad de hover. */
+    .map-scene { position: absolute; inset: 0; pointer-events: none; z-index: 0; perspective: 900px; }
+    .map-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .map-lines path {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.22);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 6 10;
+      animation: dashFlow 6s linear infinite;
+    }
+    .map-lines path:nth-child(2) {
+      stroke: rgba(255, 255, 255, 0.13);
+      animation-duration: 8s;
+      animation-direction: reverse;
+    }
+    @keyframes dashFlow { to { stroke-dashoffset: -160; } }
+
+    .map-pulse { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
+    .map-pulse::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
+      animation: pulseRing 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @keyframes pulseRing {
+      from { transform: scale(1); opacity: 0.9; }
+      to { transform: scale(3.6); opacity: 0; }
+    }
+
+    .float-card {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      box-shadow: 0 14px 30px -10px rgba(6, 12, 30, 0.6);
+      color: #fff;
+      animation: floatCard 6.5s ease-in-out infinite;
+      transform-style: preserve-3d;
+    }
+    .float-card svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.9; }
+    .float-card strong { display: block; font-size: 11.5px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
+    .float-card span { display: block; font-size: 10px; color: rgba(255, 255, 255, 0.75); white-space: nowrap; }
+
+    /* Los dos paneles se superponen ~18% en cada borde interior durante el deslizamiento
+       (para no dejar hueco), y ese lado alterna entre izquierda/derecha según el modo. Estos
+       insets se mantienen fuera de esa franja en ambos modos. */
+    .card-1 { top: 12%; left: 24%; animation-delay: 0s; }
+    .card-2 { bottom: 22%; right: 24%; animation-delay: 1.4s; animation-duration: 7.2s; }
+    .card-3 { bottom: 8%; left: 26%; animation-delay: 0.7s; animation-duration: 6.8s; }
+
+    @keyframes floatCard {
+      0%, 100% { transform: perspective(700px) translateY(0) rotateY(0deg) rotateX(0deg); }
+      50% { transform: perspective(700px) translateY(-9px) rotateY(4deg) rotateX(-3deg); }
+    }
+
+    .accent-content { position: relative; z-index: 2; color: #fff; max-width: 300px; }
     .accent-block { animation: fieldIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
     .accent-content h2 { margin: 0 0 8px; font-size: 22px; font-weight: 700; font-family: 'Space Grotesk', sans-serif; }
     .accent-content p { margin: 0 0 18px; color: rgba(255, 255, 255, 0.85); font-size: 13.5px; line-height: 1.5; }
@@ -249,6 +371,9 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       background: var(--fs-surface);
       padding: 28px 36px;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
       transform: translateX(0);
       transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
       will-change: transform;
@@ -402,8 +527,25 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       .stage { width: 100%; height: auto; max-height: none; border-radius: 0; box-shadow: none; }
       .accent-panel, .form-card { position: relative; width: 100%; transform: none !important; transition: none; animation: none; }
       .accent-panel { order: 2; padding: 28px 24px; }
-      .form-card { order: 1; padding: 28px 24px; overflow-y: visible; }
+      .accent-panel::after { display: none; }
+      .map-scene { display: none; }
+      .form-card { order: 1; padding: 28px 24px; overflow-y: visible; justify-content: flex-start; }
       .stage { display: flex; flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .stage,
+      .accent-panel,
+      .accent-decor::before,
+      .accent-decor::after,
+      .accent-panel::after,
+      .map-lines path,
+      .map-pulse::before,
+      .float-card,
+      .field-group,
+      .accent-block {
+        animation: none !important;
+      }
     }
   `],
 })
