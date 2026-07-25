@@ -79,8 +79,7 @@ app/src/main/java/com/corporacionronceros/fieldsync/
 
 ## 📸 Capturas
 
-Graba las capturas reales con el emulador/dispositivo y el backend corriendo
-(ver la [guía de captura](../docs/CAPTURES.md)); colócalas en `docs/media/` y descomenta:
+Capturas reales contra el backend en producción, tomadas en un dispositivo físico:
 
-<!-- ![Lista de órdenes](../docs/media/android-tasks.png) -->
-<!-- ![Sincronización offline](../docs/media/android-offline.gif) -->
+![Lista de órdenes](../docs/media/android-tasks.png)
+![Sincronización offline](../docs/media/android-offline.gif)

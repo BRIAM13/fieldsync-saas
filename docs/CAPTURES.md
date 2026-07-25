@@ -13,8 +13,8 @@ el backend corriendo, Android Studio y un emulador) y colocarlas en `docs/media/
 |--------------------------|-------------|--------|
 | `web-login.png` | Pantalla de login del panel Angular | ✅ real, contra producción |
 | `web-dispatch.gif` | Asignar una orden a un técnico en el mapa | ✅ real, contra producción |
-| `android-tasks.png` | Lista de órdenes en la app del técnico | ⏳ pendiente |
-| `android-offline.gif` | Badge "pendiente" → "sincronizado" al volver la red | ⏳ pendiente |
+| `android-tasks.png` | Lista de órdenes en la app del técnico | ✅ real, contra producción |
+| `android-offline.gif` | Badge "pendiente" → "sincronizado" al volver la red | ✅ real, contra producción |
 | `client-tracking.gif` | Login/registro → solicitar servicio con GPS → seguimiento en vivo | ✅ real, contra producción |
 
 ---
