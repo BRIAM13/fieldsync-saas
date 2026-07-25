@@ -126,9 +126,9 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
 
             <p class="err" *ngIf="error()">⚠ {{ error() }}</p>
 
-            <div class="hint-box" *ngIf="audience() === 'empresa' && mode() === 'login'">
+            <div class="hint-box" *ngIf="mode() === 'login'">
               Cuenta de demostración<br />
-              <strong>admin&#64;fieldsync.dev</strong> / demo1234
+              <strong>{{ audience() === 'empresa' ? 'admin@fieldsync.dev' : 'cliente@fieldsync.dev' }}</strong> / demo1234
             </div>
           </form>
         </div>
@@ -145,10 +145,9 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
 
     .stage {
       position: relative;
-      width: min(880px, 100%);
-      height: 620px;
-      max-height: 90vh;
-      border-radius: 24px;
+      width: min(860px, 100%);
+      height: min(600px, 90vh);
+      border-radius: 22px;
       overflow: hidden;
       box-shadow: var(--fs-shadow);
       background: var(--fs-bg);
@@ -165,21 +164,21 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 48px;
+      padding: 32px;
       transition: left 0.65s cubic-bezier(0.65, 0, 0.35, 1);
     }
     .accent-panel.on-left { left: 0; }
-    .accent-content { color: #fff; max-width: 320px; }
-    .accent-content h2 { margin: 0 0 10px; font-size: 24px; font-family: 'Space Grotesk', sans-serif; }
-    .accent-content p { margin: 0 0 22px; color: rgba(255, 255, 255, 0.85); font-size: 14px; line-height: 1.5; }
+    .accent-content { color: #fff; max-width: 300px; }
+    .accent-content h2 { margin: 0 0 7px; font-size: 21px; font-family: 'Space Grotesk', sans-serif; }
+    .accent-content p { margin: 0 0 16px; color: rgba(255, 255, 255, 0.85); font-size: 13px; line-height: 1.45; }
     .ghost-btn {
       background: transparent;
       border: 1.5px solid #fff;
       color: #fff;
-      padding: 10px 22px;
+      padding: 9px 20px;
       border-radius: 10px;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
       transition: background 0.15s;
     }
@@ -193,7 +192,7 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       height: 100%;
       z-index: 2;
       background: var(--fs-surface);
-      padding: 40px 44px;
+      padding: 26px 36px;
       overflow-y: auto;
       transition: left 0.65s cubic-bezier(0.65, 0, 0.35, 1);
     }
@@ -206,7 +205,8 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       border: 1px solid var(--fs-border);
       border-radius: 100px;
       padding: 4px;
-      margin-bottom: 24px;
+      margin-bottom: 14px;
+      flex-shrink: 0;
     }
     .audience-toggle button {
       position: relative;
@@ -235,34 +235,34 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
     }
     .toggle-indicator.right { transform: translateX(100%); }
 
-    h1 { margin: 0; font-size: 24px; font-family: 'Space Grotesk', sans-serif; }
-    .sub { margin: 4px 0 22px; color: var(--fs-text-faint); font-size: 13px; }
+    h1 { margin: 0; font-size: 21px; font-family: 'Space Grotesk', sans-serif; }
+    .sub { margin: 3px 0 14px; color: var(--fs-text-faint); font-size: 12.5px; }
 
-    form { display: flex; flex-direction: column; gap: 4px; }
-    label { font-size: 12px; color: var(--fs-text-muted); margin-top: 10px; font-weight: 500; }
+    form { display: flex; flex-direction: column; gap: 2px; }
+    label { font-size: 11.5px; color: var(--fs-text-muted); margin-top: 7px; font-weight: 500; }
     input {
-      padding: 11px 13px;
-      border-radius: 10px;
+      padding: 8px 12px;
+      border-radius: 9px;
       border: 1px solid var(--fs-border);
       background: var(--fs-bg);
       color: var(--fs-text);
-      font-size: 14px;
+      font-size: 13.5px;
       transition: border-color 0.15s;
     }
     input:focus { outline: none; border-color: var(--fs-primary); }
 
     .honeypot { position: absolute; left: -9999px; width: 0; height: 0; opacity: 0; pointer-events: none; }
 
-    .tip { margin: 6px 0 0; font-size: 11px; color: #facc15; line-height: 1.4; }
+    .tip { margin: 4px 0 0; font-size: 10.5px; color: #facc15; line-height: 1.35; }
 
-    .company-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .company-list { display: flex; flex-wrap: wrap; gap: 6px; }
     .company-chip {
-      padding: 7px 13px;
+      padding: 5px 11px;
       border-radius: 100px;
       background: var(--fs-bg);
       border: 1px solid var(--fs-border);
       color: var(--fs-text-muted);
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
@@ -272,18 +272,18 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
       border-color: var(--fs-primary);
       color: #60a5fa;
     }
-    .hint { color: var(--fs-text-faint); font-size: 12px; }
+    .hint { color: var(--fs-text-faint); font-size: 11.5px; }
 
     .submit-btn {
-      margin-top: 22px;
-      padding: 13px;
+      margin-top: 14px;
+      padding: 10px;
       border: 0;
-      border-radius: 10px;
+      border-radius: 9px;
       background: var(--fs-primary);
       color: #fff;
       cursor: pointer;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 13.5px;
       transition: background 0.15s;
       display: flex;
       align-items: center;
@@ -293,25 +293,25 @@ const GENERIC_EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo
     .submit-btn:hover:not(:disabled) { background: var(--fs-primary-dark); }
     .submit-btn:disabled { opacity: 0.6; cursor: default; }
 
-    .err { color: #f87171; font-size: 13px; margin: 10px 0 0; }
+    .err { color: #f87171; font-size: 12.5px; margin: 8px 0 0; }
 
     .hint-box {
-      margin-top: 18px;
-      padding: 11px;
-      border-radius: 10px;
+      margin-top: 12px;
+      padding: 8px;
+      border-radius: 9px;
       background: var(--fs-surface-2);
       color: var(--fs-text-faint);
-      font-size: 12px;
+      font-size: 11.5px;
       text-align: center;
-      line-height: 1.6;
+      line-height: 1.5;
     }
     .hint-box strong { color: var(--fs-text-muted); }
 
     @media (max-width: 760px) {
-      .stage { height: auto; min-height: 640px; }
+      .stage { height: auto; max-height: none; min-height: 0; }
       .accent-panel, .form-card { position: relative; width: 100%; left: 0 !important; transition: none; }
-      .accent-panel { order: 2; padding: 32px 24px; }
-      .form-card { order: 1; padding: 32px 24px; }
+      .accent-panel { order: 2; padding: 24px 22px; }
+      .form-card { order: 1; padding: 24px 22px; }
       .stage { display: flex; flex-direction: column; }
     }
   `],
