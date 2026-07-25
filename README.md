@@ -16,7 +16,7 @@ Conecta la oficina, al técnico en la calle y al cliente final en un solo flujo,
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
 [![CI](https://github.com/BRIAM13/fieldsync-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/BRIAM13/fieldsync-saas/actions/workflows/ci.yml)
-Repo: [github.com/BRIAM13/fieldsync-saas](https://github.com/BRIAM13/fieldsync-saas) · **Panel en vivo:** [fieldsync-web-admin.vercel.app](https://fieldsync-web-admin.vercel.app) (Vercel) · **Backend en vivo:** [fieldsync-backend-cipm.onrender.com](https://fieldsync-backend-cipm.onrender.com/health) (Render + Aiven Postgres) · Cuenta demo: `admin@fieldsync.dev` / `demo1234`
+Repo: [github.com/BRIAM13/fieldsync-saas](https://github.com/BRIAM13/fieldsync-saas) · **Panel en vivo:** [fieldsync-web-admin.vercel.app](https://fieldsync-web-admin.vercel.app) (Vercel) · **Backend en vivo:** [fieldsync-backend-cipm.onrender.com](https://fieldsync-backend-cipm.onrender.com/health) (Render + Aiven Postgres) · Cuenta demo empresa: `admin@fieldsync.dev` / `demo1234` · Cuenta demo cliente: `cliente@fieldsync.dev` / `demo1234`
 
 > **Sobre este repositorio.** FieldSync es la **pieza central del portafolio** de Briam Ronceros
 > para postular a puestos de **Desarrollador Android**. Cada componente está elegido para
@@ -32,7 +32,7 @@ Tres aplicaciones sobre un modelo de dominio común:
 | Pieza | Usuario | Stack | Rol |
 |-------|---------|-------|-----|
 | [`android-app/`](android-app/) | Técnico en la calle | **Kotlin** · Clean Arch + MVVM · Compose · Room · WorkManager | Recibe, ejecuta y cierra órdenes **offline-first** |
-| [`web-admin/`](web-admin/) | Despachador / admin | **Angular 18** · TypeScript · RxJS | Asigna tareas sobre un mapa |
+| [`web-admin/`](web-admin/) | Despachador / admin **y** cliente final | **Angular 18** · TypeScript · RxJS | Asigna tareas sobre un mapa; portal web del cliente (solicitud + GPS + seguimiento en vivo) |
 | [`client-app/`](client-app/) | Cliente final | **React Native** (Expo) | Solicita un servicio (con GPS) y sigue a su técnico **en tiempo real** |
 | [`backend/`](backend/) | — (API compartida) | **Ktor** · Kotlin · WebSockets | Conecta las tres apps: REST + tiempo real |
 | [`marketing/`](marketing/) | — | **HyperFrames** (HTML/CSS/GSAP) | Video promocional → MP4 |
