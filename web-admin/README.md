@@ -5,7 +5,7 @@ un mapa — y, en el mismo dominio, **portal completo para el cliente final**: p
 ubicación GPS y sigue a su técnico en vivo. Una sola pantalla de acceso dinámica sirve a ambos
 públicos.
 
-**En vivo:** [fieldsync-web-admin.vercel.app](https://fieldsync-web-admin.vercel.app) (Vercel) — conectado al backend real en Render + Aiven Postgres.
+**En vivo:** [getfieldsync.vercel.app](https://getfieldsync.vercel.app) (Vercel) — conectado al backend real en Render + Aiven Postgres.
 
 ## Stack
 

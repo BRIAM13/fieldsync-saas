@@ -16,7 +16,7 @@ Conecta la oficina, al técnico en la calle y al cliente final en un solo flujo,
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
 [![CI](https://github.com/BRIAM13/fieldsync-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/BRIAM13/fieldsync-saas/actions/workflows/ci.yml)
-Repo: [github.com/BRIAM13/fieldsync-saas](https://github.com/BRIAM13/fieldsync-saas) · **Panel en vivo:** [fieldsync-web-admin.vercel.app](https://fieldsync-web-admin.vercel.app) (Vercel) · **Backend en vivo:** [fieldsync-backend-cipm.onrender.com](https://fieldsync-backend-cipm.onrender.com/health) (Render + Aiven Postgres) · Cuenta demo empresa: `admin@fieldsync.dev` / `demo1234` · Cuenta demo cliente: `cliente@fieldsync.dev` / `demo1234`
+Repo: [github.com/BRIAM13/fieldsync-saas](https://github.com/BRIAM13/fieldsync-saas) · **Panel en vivo:** [getfieldsync.vercel.app](https://getfieldsync.vercel.app) (Vercel) · **Backend en vivo:** [fieldsync-backend-cipm.onrender.com](https://fieldsync-backend-cipm.onrender.com/health) (Render + Aiven Postgres) · Cuenta demo empresa: `admin@fieldsync.dev` / `demo1234` · Cuenta demo cliente: `cliente@fieldsync.dev` / `demo1234`
 
 > **Sobre este repositorio.** FieldSync es la **pieza central del portafolio** de Briam Ronceros
 > para postular a puestos de **Desarrollador Android**. Cada componente está elegido para
