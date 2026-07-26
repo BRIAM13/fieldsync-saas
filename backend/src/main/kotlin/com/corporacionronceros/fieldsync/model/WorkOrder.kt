@@ -27,13 +27,18 @@ enum class Priority { LOW, MEDIUM, HIGH, URGENT }
 @Serializable
 enum class WorkOrderStatus { UNASSIGNED, ASSIGNED, IN_PROGRESS, ON_HOLD, COMPLETED, CANCELLED }
 
+/** Oficio del técnico — usado para sugerir el técnico adecuado al asignar una orden. */
+@Serializable
+enum class Specialty { PLOMERIA, ELECTRICIDAD, GENERAL }
+
 /** Técnico de campo disponible para asignación. */
 @Serializable
 data class Technician(
     val id: String,
     val name: String,
     val location: GeoPoint,
-    val available: Boolean
+    val available: Boolean,
+    val specialty: Specialty = Specialty.GENERAL
 )
 
 /** Cuerpo de PATCH /api/work-orders/{id}/assignment */

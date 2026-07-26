@@ -4,6 +4,7 @@ import {
   ElementRef,
   OnDestroy,
   ViewChild,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -12,25 +13,30 @@ import { Subscription } from 'rxjs';
 import * as L from 'leaflet';
 import { WorkOrderService } from '../../core/services/work-order.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Technician, WorkOrder } from '../../core/models/work-order.model';
-import { priorityLabel, statusLabel } from '../../core/utils/labels';
+import { Specialty, Technician, WorkOrder } from '../../core/models/work-order.model';
+import { priorityLabel, specialtyIcon, specialtyLabel, statusLabel } from '../../core/utils/labels';
+import { inferSpecialty } from '../../core/utils/specialty-match';
+import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.pipe';
 
 /**
  * Asignación inteligente en mapa (característica clave #1) con **Leaflet + OpenStreetMap**.
  *
  * Dibuja marcadores reales de órdenes y técnicos sobre un mapa interactivo. Al hacer clic en
- * una orden se selecciona; se le asigna el técnico disponible elegido y se traza la línea
- * orden → técnico. Los datos vienen del backend (WorkOrderService).
+ * una orden se selecciona y el panel lateral se convierte en un desglose completo (problema
+ * reportado, cliente, dirección, prioridad, estado) con la lista de técnicos ordenada según
+ * quién coincide con la especialidad que la orden necesita — inferida por palabras clave de
+ * su título, ya que el backend no tiene un campo de categoría separado. Los datos vienen del
+ * backend (WorkOrderService).
  */
 @Component({
   selector: 'fs-map-dispatch',
   standalone: true,
-  imports: [NgFor, NgIf],
+  imports: [NgFor, NgIf, PriorityLabelPipe, StatusLabelPipe],
   template: `
     <div class="header-row">
       <div>
         <h2>Asignación en mapa</h2>
-        <p class="sub">Elige una orden y asígnala al técnico más cercano</p>
+        <p class="sub">Elige una orden y asígnala al técnico más adecuado</p>
       </div>
     </div>
 
@@ -48,46 +54,103 @@ import { priorityLabel, statusLabel } from '../../core/utils/labels';
       </div>
 
       <aside class="panel fs-card">
-        <div class="panel-header">
-          <h3>Técnicos</h3>
-          <span class="count" *ngIf="!techniciansLoading()">{{ technicians().length }}</span>
-        </div>
+        <ng-container *ngIf="canAssign() && selectedOrder() as order; else generalPanel">
+          <div class="detail-card">
+            <button class="back-btn" (click)="clearSelection()">← Ver todos los técnicos</button>
 
-        <ul *ngIf="canAssign() && techniciansLoading(); else techList">
-          <li *ngFor="let _ of skeletonRows">
-            <span class="skeleton" style="width: 10px; height: 10px; border-radius: 50%"></span>
-            <div class="tech-info">
-              <span class="skeleton" style="width: 100px; margin-bottom: 4px"></span>
-              <span class="skeleton" style="width: 60px; height: 10px"></span>
+            <div class="detail-top">
+              <span [class]="'badge badge-' + order.priority.toLowerCase()">{{ order.priority | priorityLabel }}</span>
+              <span [class]="'badge badge-' + order.status.toLowerCase()">{{ order.status | statusLabel }}</span>
             </div>
-          </li>
-        </ul>
+            <h3 class="problem-title">{{ order.title }}</h3>
 
-        <ng-template #techList>
-          <ul>
-            <li *ngFor="let t of technicians()" [class.off]="!t.available">
-              <div class="tech-dot" [class.available]="t.available"></div>
+            <dl class="detail-list">
+              <dt>Cliente</dt>
+              <dd>{{ order.customerName }}</dd>
+              <dt>Ubicación</dt>
+              <dd>{{ order.address }}</dd>
+              <dt>Programada</dt>
+              <dd>{{ formatScheduled(order.scheduledAtEpochMs) }}</dd>
+            </dl>
+
+            <div class="assign-section">
+              <h4>Asignar técnico</h4>
+              <ul *ngIf="!techniciansLoading(); else techSkeleton">
+                <li
+                  *ngFor="let t of rankedTechnicians()"
+                  [class.off]="!t.available"
+                  [class.suggested]="t.specialty === suggestedSpecialty()"
+                >
+                  <div class="tech-dot" [class.available]="t.available"></div>
+                  <div class="tech-info">
+                    <span class="tech-name">
+                      {{ t.name }}
+                      <span class="suggested-tag" *ngIf="t.specialty === suggestedSpecialty()">★ Sugerido</span>
+                    </span>
+                    <span class="tech-status">
+                      <span [class]="'badge badge-' + t.specialty.toLowerCase()">
+                        {{ specialtyIcon(t.specialty) }} {{ specialtyLabel(t.specialty) }}
+                      </span>
+                      {{ t.available ? 'Disponible' : 'Ocupado' }}
+                    </span>
+                  </div>
+                  <button *ngIf="t.available" (click)="assign(t.id)">Asignar</button>
+                </li>
+              </ul>
+              <ng-template #techSkeleton>
+                <ul>
+                  <li *ngFor="let _ of skeletonRows">
+                    <span class="skeleton" style="width: 10px; height: 10px; border-radius: 50%"></span>
+                    <div class="tech-info">
+                      <span class="skeleton" style="width: 100px; margin-bottom: 4px"></span>
+                      <span class="skeleton" style="width: 60px; height: 10px"></span>
+                    </div>
+                  </li>
+                </ul>
+              </ng-template>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-template #generalPanel>
+          <div class="panel-header">
+            <h3>Técnicos</h3>
+            <span class="count" *ngIf="!techniciansLoading()">{{ technicians().length }}</span>
+          </div>
+
+          <ul *ngIf="canAssign() && techniciansLoading(); else techList">
+            <li *ngFor="let _ of skeletonRows">
+              <span class="skeleton" style="width: 10px; height: 10px; border-radius: 50%"></span>
               <div class="tech-info">
-                <span class="tech-name">{{ t.name }}</span>
-                <span class="tech-status">{{ t.available ? 'Disponible' : 'Ocupado' }}</span>
+                <span class="skeleton" style="width: 100px; margin-bottom: 4px"></span>
+                <span class="skeleton" style="width: 60px; height: 10px"></span>
               </div>
-              <button *ngIf="canAssign() && selectedOrderId() && t.available" (click)="assign(t.id)">
-                Asignar
-              </button>
             </li>
           </ul>
-        </ng-template>
 
-        <div class="footer-note" *ngIf="!canAssign()">
-          <span class="lock">🔒</span>
-          Tu rol ({{ roleLabel() }}) no puede asignar órdenes.
-        </div>
-        <div class="footer-note selected" *ngIf="canAssign() && selectedOrderId(); else hint">
-          Orden seleccionada: <b>{{ selectedOrderId() }}</b>
-        </div>
-        <ng-template #hint>
+          <ng-template #techList>
+            <ul>
+              <li *ngFor="let t of technicians()" [class.off]="!t.available">
+                <div class="tech-dot" [class.available]="t.available"></div>
+                <div class="tech-info">
+                  <span class="tech-name">{{ t.name }}</span>
+                  <span class="tech-status">
+                    <span [class]="'badge badge-' + t.specialty.toLowerCase()">
+                      {{ specialtyIcon(t.specialty) }} {{ specialtyLabel(t.specialty) }}
+                    </span>
+                    {{ t.available ? 'Disponible' : 'Ocupado' }}
+                  </span>
+                </div>
+              </li>
+            </ul>
+          </ng-template>
+
+          <div class="footer-note" *ngIf="!canAssign()">
+            <span class="lock">🔒</span>
+            Tu rol ({{ roleLabel() }}) no puede asignar órdenes.
+          </div>
           <div class="footer-note" *ngIf="canAssign()">
-            Haz clic en un pin de orden 📍 en el mapa para asignarla.
+            Haz clic en un pin de orden 📍 en el mapa para ver el desglose y asignarla.
           </div>
         </ng-template>
       </aside>
@@ -139,6 +202,7 @@ import { priorityLabel, statusLabel } from '../../core/utils/labels';
     }
     li:hover { background: rgba(255, 255, 255, 0.03); }
     li.off { opacity: 0.55; }
+    li.suggested { background: var(--fs-primary-light); }
 
     .tech-dot {
       width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
@@ -146,9 +210,14 @@ import { priorityLabel, statusLabel } from '../../core/utils/labels';
     }
     .tech-dot.available { background: #4ade80; box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.18); }
 
-    .tech-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-    .tech-name { font-size: 13px; font-weight: 500; color: var(--fs-text); }
-    .tech-status { font-size: 11px; color: var(--fs-text-faint); }
+    .tech-info { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 3px; }
+    .tech-name { font-size: 13px; font-weight: 500; color: var(--fs-text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .tech-status { font-size: 11px; color: var(--fs-text-faint); display: flex; align-items: center; gap: 6px; }
+
+    .suggested-tag {
+      font-size: 10px; font-weight: 700; color: #facc15;
+      background: rgba(250, 204, 21, 0.14); padding: 1px 7px; border-radius: 100px;
+    }
 
     button {
       background: var(--fs-primary); color: #fff; border: 0; border-radius: var(--fs-radius-sm);
@@ -162,8 +231,28 @@ import { priorityLabel, statusLabel } from '../../core/utils/labels';
       background: var(--fs-surface-2); border-radius: var(--fs-radius-sm);
       color: var(--fs-text-faint); font-size: 12px; line-height: 1.5;
     }
-    .footer-note.selected { color: var(--fs-text); background: var(--fs-primary-light); }
     .footer-note .lock { margin-right: 4px; }
+
+    /* Tarjeta de desglose de la orden seleccionada */
+    .detail-card { animation: detailIn 0.22s ease-out; }
+    @keyframes detailIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .back-btn {
+      background: none; color: var(--fs-text-faint); padding: 0; font-size: 12px;
+      font-weight: 500; margin-bottom: 12px;
+    }
+    .back-btn:hover { color: var(--fs-text); background: none; }
+    .detail-top { display: flex; gap: 6px; margin-bottom: 8px; }
+    .problem-title { margin: 0 0 14px; font-size: 16px; line-height: 1.35; }
+
+    .detail-list { margin: 0 0 18px; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; }
+    .detail-list dt { font-size: 11px; color: var(--fs-text-faint); text-transform: uppercase; letter-spacing: 0.03em; }
+    .detail-list dd { margin: 0; font-size: 13px; color: var(--fs-text); }
+
+    .assign-section { border-top: 1px solid var(--fs-border); padding-top: 14px; }
+    .assign-section h4 { margin: 0 0 8px; font-size: 12px; color: var(--fs-text-faint); text-transform: uppercase; letter-spacing: 0.03em; }
 
     /* Marcadores (divIcon) */
     :host ::ng-deep .fs-pin {
@@ -187,7 +276,34 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
   readonly technicians = signal<Technician[]>([]);
   readonly techniciansLoading = signal(true);
   readonly selectedOrderId = signal<string | null>(null);
+  readonly orders = signal<WorkOrder[]>([]);
   readonly skeletonRows = Array.from({ length: 3 });
+
+  readonly specialtyLabel = specialtyLabel;
+  readonly specialtyIcon = specialtyIcon;
+
+  /** La orden que el mapa tiene seleccionada, resuelta desde la lista viva de órdenes. */
+  readonly selectedOrder = computed(
+    () => this.orders().find((o) => o.id === this.selectedOrderId()) ?? null,
+  );
+
+  /** Especialidad que el título de la orden sugiere (palabras clave — ver specialty-match.ts). */
+  readonly suggestedSpecialty = computed<Specialty | null>(() => {
+    const order = this.selectedOrder();
+    return order ? inferSpecialty(order.title) : null;
+  });
+
+  /** Técnicos con el que coincide la especialidad sugerida primero; nunca oculta al resto. */
+  readonly rankedTechnicians = computed(() => {
+    const suggested = this.suggestedSpecialty();
+    const techs = this.technicians();
+    if (!suggested) return techs;
+    return [...techs].sort((a, b) => {
+      const aMatch = a.specialty === suggested ? 0 : 1;
+      const bMatch = b.specialty === suggested ? 0 : 1;
+      return aMatch - bMatch;
+    });
+  });
 
   /** RBAC en el cliente: solo ADMIN/DISPATCHER asignan (el backend lo exige de todos modos). */
   readonly roleLabel = () => {
@@ -203,7 +319,6 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
   private map!: L.Map;
   private readonly orderLayer = L.layerGroup();
   private readonly techLayer = L.layerGroup();
-  private lastOrders: WorkOrder[] = [];
   private subs = new Subscription();
 
   ngAfterViewInit(): void {
@@ -225,7 +340,7 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
     }
     this.subs.add(
       this.service.getWorkOrders().subscribe((orders) => {
-        this.lastOrders = orders;
+        this.orders.set(orders);
         this.renderOrders(orders);
       }),
     );
@@ -243,9 +358,22 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
     this.selectedOrderId.set(null);
   }
 
+  clearSelection(): void {
+    this.selectedOrderId.set(null);
+  }
+
   retry(): void {
     this.service.refresh();
     if (this.canAssign()) this.loadTechnicians();
+  }
+
+  formatScheduled(epochMs: number): string {
+    return new Intl.DateTimeFormat('es-PE', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(epochMs));
   }
 
   private loadTechnicians(): void {
@@ -255,7 +383,7 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
           this.technicians.set(techs);
           this.techniciansLoading.set(false);
           this.renderTechnicians(techs);
-          this.renderOrders(this.lastOrders);
+          this.renderOrders(this.orders());
         },
         error: () => this.techniciansLoading.set(false),
       }),
@@ -283,7 +411,7 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
         icon: this.pinIcon('📍', assigned),
       })
         .bindPopup(
-          `<b>${order.title}</b><br>${order.customerName}<br>${priorityLabel(order.priority)} · ${statusLabel(order.status)}`,
+          `<b>${order.title}</b><br>${order.customerName}<br>${order.address}<br>${priorityLabel(order.priority)} · ${statusLabel(order.status)}`,
         )
         .on('click', () => this.selectedOrderId.set(order.id))
         .addTo(this.orderLayer);
@@ -309,7 +437,9 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
       L.marker([tech.location.lat, tech.location.lng], {
         icon: this.pinIcon('🔧', !tech.available),
       })
-        .bindPopup(`<b>${tech.name}</b><br>${tech.available ? 'Disponible' : 'Ocupado'}`)
+        .bindPopup(
+          `<b>${tech.name}</b><br>${specialtyIcon(tech.specialty)} ${specialtyLabel(tech.specialty)}<br>${tech.available ? 'Disponible' : 'Ocupado'}`,
+        )
         .addTo(this.techLayer);
     }
   }

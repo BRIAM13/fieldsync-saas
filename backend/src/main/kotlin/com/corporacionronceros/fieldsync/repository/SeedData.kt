@@ -3,6 +3,7 @@ package com.corporacionronceros.fieldsync.repository
 import com.corporacionronceros.fieldsync.model.Company
 import com.corporacionronceros.fieldsync.model.GeoPoint
 import com.corporacionronceros.fieldsync.model.Priority
+import com.corporacionronceros.fieldsync.model.Specialty
 import com.corporacionronceros.fieldsync.model.Technician
 import com.corporacionronceros.fieldsync.model.User
 import com.corporacionronceros.fieldsync.model.UserRole
@@ -60,8 +61,8 @@ object SeedData {
     }
 
     fun technicians(): List<Technician> = listOf(
-        Technician("T-01", "Carlos Ramírez", GeoPoint(-12.046, -77.043), available = true),
-        Technician("T-02", "Lucía Fernández", GeoPoint(-12.089, -77.021), available = true),
-        Technician("T-03", "Miguel Torres", GeoPoint(-12.112, -76.998), available = false),
+        Technician("T-01", "Carlos Ramírez", GeoPoint(-12.046, -77.043), available = true, specialty = Specialty.PLOMERIA),
+        Technician("T-02", "Lucía Fernández", GeoPoint(-12.089, -77.021), available = true, specialty = Specialty.ELECTRICIDAD),
+        Technician("T-03", "Miguel Torres", GeoPoint(-12.112, -76.998), available = false, specialty = Specialty.GENERAL),
     )
 }

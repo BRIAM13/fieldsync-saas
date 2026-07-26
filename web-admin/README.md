@@ -14,7 +14,7 @@ públicos.
 - **RxJS** + **Signals** para estado reactivo
 - **`HttpClient` conectado al backend real** (Ktor) — órdenes, técnicos, asignación, usuarios y solicitudes de cliente
 - **WebSocket nativo** envuelto en un `Observable` — seguimiento de técnico en vivo para el cliente
-- **Leaflet + OpenStreetMap** — mapa interactivo real, tanto en el despacho (staff) como en el seguimiento (cliente)
+- **Leaflet + OpenStreetMap** — mapa interactivo real, tanto en el despacho (staff) como en el seguimiento (cliente); un clic en el pin de una orden despliega su desglose completo (problema, cliente, ubicación, prioridad) y sugiere al técnico cuya especialidad coincide con el título de la orden
 - **Geolocalización del navegador** (`navigator.geolocation`) — el cliente captura su ubicación real al pedir servicio
 
 > La URL base del backend está centralizada en `core/api.config.ts` y por defecto apunta a

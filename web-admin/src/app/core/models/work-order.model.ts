@@ -13,11 +13,14 @@ export interface GeoPoint {
   lng: number;
 }
 
+export type Specialty = 'PLOMERIA' | 'ELECTRICIDAD' | 'GENERAL';
+
 export interface Technician {
   id: string;
   name: string;
   location: GeoPoint;
   available: boolean;
+  specialty: Specialty;
 }
 
 export interface WorkOrder {

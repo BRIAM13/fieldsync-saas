@@ -6,6 +6,7 @@ import com.corporacionronceros.fieldsync.model.GeoPoint
 import com.corporacionronceros.fieldsync.model.PendingChange
 import com.corporacionronceros.fieldsync.model.Priority
 import com.corporacionronceros.fieldsync.model.ServiceRequestCreate
+import com.corporacionronceros.fieldsync.model.Specialty
 import com.corporacionronceros.fieldsync.model.Technician
 import com.corporacionronceros.fieldsync.model.WorkOrder
 import com.corporacionronceros.fieldsync.model.WorkOrderStatus
@@ -34,9 +35,28 @@ class ExposedWorkOrderRepository : WorkOrderRepository {
                     it[lat] = t.location.lat
                     it[lng] = t.location.lng
                     it[available] = t.available
+                    it[specialty] = t.specialty.name
                 }
             }
             SeedData.orders().forEach { insertOrder(SeedData.DEMO_COMPANY_ID, it) }
+        }
+    }
+
+    /**
+     * Completa `specialty` para los técnicos demo sembrados ANTES de que existiera esa
+     * columna (ya en producción): `seedIfEmpty()` no vuelve a correr porque `work_orders`
+     * ya no está vacía, así que sin esto los 3 técnicos quedarían con `specialty = null`
+     * para siempre. Cada `update` solo toca la fila si aún tiene `specialty IS NULL`, así
+     * que reejecutarlo en cada arranque es un no-op una vez aplicado.
+     */
+    suspend fun backfillTechnicianSpecialties() = dbQuery {
+        val bySeedId = SeedData.technicians().associateBy { it.id }
+        bySeedId.values.forEach { t ->
+            TechniciansTable.update({
+                (TechniciansTable.id eq t.id) and (TechniciansTable.specialty.isNull())
+            }) {
+                it[specialty] = t.specialty.name
+            }
         }
     }
 
@@ -175,7 +195,8 @@ class ExposedWorkOrderRepository : WorkOrderRepository {
         id = this[TechniciansTable.id],
         name = this[TechniciansTable.name],
         location = GeoPoint(this[TechniciansTable.lat], this[TechniciansTable.lng]),
-        available = this[TechniciansTable.available]
+        available = this[TechniciansTable.available],
+        specialty = this[TechniciansTable.specialty]?.let { Specialty.valueOf(it) } ?: Specialty.GENERAL
     )
 
     private suspend fun <T> dbQuery(block: suspend () -> T): T =

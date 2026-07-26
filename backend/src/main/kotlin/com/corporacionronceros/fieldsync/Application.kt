@@ -49,7 +49,12 @@ fun Application.module() {
     if (DatabaseFactory.init()) {
         log.info("Persistencia: Postgres (Exposed)")
         val auth = ExposedAuthRepository().also { runBlocking { it.seedIfEmpty() } }
-        val work = ExposedWorkOrderRepository().also { runBlocking { it.seedIfEmpty() } }
+        val work = ExposedWorkOrderRepository().also {
+            runBlocking {
+                it.seedIfEmpty()
+                it.backfillTechnicianSpecialties()
+            }
+        }
         authRepository = auth
         workOrderRepository = work
         customerRepository = ExposedCustomerRepository()

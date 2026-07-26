@@ -70,5 +70,7 @@ object TechniciansTable : Table("technicians") {
     val lat = double("lat")
     val lng = double("lng")
     val available = bool("available")
+    /** Nullable: las filas sembradas antes de este campo se completan con un backfill. */
+    val specialty = varchar("specialty", 20).nullable()
     override val primaryKey = PrimaryKey(id)
 }

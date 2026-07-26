@@ -1,4 +1,4 @@
-import { Priority, WorkOrderStatus } from '../models/work-order.model';
+import { Priority, Specialty, WorkOrderStatus } from '../models/work-order.model';
 
 /**
  * Traduce los enums del dominio (en inglés — contrato con el backend) al español.
@@ -27,4 +27,24 @@ export function priorityLabel(value: Priority): string {
 
 export function statusLabel(value: WorkOrderStatus): string {
   return STATUS_LABELS[value] ?? value;
+}
+
+const SPECIALTY_LABELS: Record<Specialty, string> = {
+  PLOMERIA: 'Plomería',
+  ELECTRICIDAD: 'Electricidad',
+  GENERAL: 'General',
+};
+
+const SPECIALTY_ICONS: Record<Specialty, string> = {
+  PLOMERIA: '🔧',
+  ELECTRICIDAD: '⚡',
+  GENERAL: '🛠️',
+};
+
+export function specialtyLabel(value: Specialty): string {
+  return SPECIALTY_LABELS[value] ?? value;
+}
+
+export function specialtyIcon(value: Specialty): string {
+  return SPECIALTY_ICONS[value] ?? '🛠️';
 }
