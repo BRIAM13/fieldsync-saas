@@ -38,7 +38,14 @@ data class Technician(
     val name: String,
     val location: GeoPoint,
     val available: Boolean,
-    val specialty: Specialty = Specialty.GENERAL
+    /**
+     * Sin valor por defecto A PROPÓSITO: kotlinx.serialization omite del JSON los campos
+     * que igualan su default (ver `configureSerialization()`, sin `encodeDefaults`), así
+     * que un técnico con GENERAL por defecto perdería el campo entero en la respuesta.
+     * Ambos sitios que construyen `Technician` (SeedData, `toTechnician()`) ya lo pasan
+     * explícito, así que no perdemos nada al exigirlo.
+     */
+    val specialty: Specialty
 )
 
 /** Cuerpo de PATCH /api/work-orders/{id}/assignment */
