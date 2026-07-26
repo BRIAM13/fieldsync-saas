@@ -147,6 +147,10 @@ class WorkOrderApiTest {
             setBody(AssignmentRequest("T-01"))
         }
         assertEquals(HttpStatusCode.OK, dispTry.status)
+        val assigned: WorkOrder = dispTry.body()
+        // T-01 = Carlos Ramírez (SeedData.technicians()) — el nombre se resuelve en el
+        // repositorio, no llega solo el id crudo.
+        assertEquals("Carlos Ramírez", assigned.assignedTechnicianName)
     }
 
     @Test

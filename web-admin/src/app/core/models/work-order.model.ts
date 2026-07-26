@@ -33,4 +33,5 @@ export interface WorkOrder {
   scheduledAtEpochMs: number;
   location?: GeoPoint;
   assignedTechnicianId?: string | null;
+  assignedTechnicianName?: string | null;
 }

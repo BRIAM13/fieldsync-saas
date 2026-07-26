@@ -18,6 +18,9 @@ data class WorkOrder(
     val scheduledAtEpochMs: Long,
     val location: GeoPoint? = null,
     val assignedTechnicianId: String? = null,
+    /** Nombre del técnico asignado, resuelto por el repositorio — evita que cada cliente
+     *  (Angular, Android, RN) tenga que cruzar contra /api/technicians solo para mostrarlo. */
+    val assignedTechnicianName: String? = null,
     val customerId: String? = null
 )
 

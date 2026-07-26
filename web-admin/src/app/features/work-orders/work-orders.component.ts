@@ -30,6 +30,7 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
             <th>Cliente</th>
             <th>Prioridad</th>
             <th>Estado</th>
+            <th>Técnico</th>
           </tr>
         </thead>
         <tbody *ngIf="service.loading(); else loaded">
@@ -39,6 +40,7 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
             <td><span class="skeleton" style="width: 110px"></span></td>
             <td><span class="skeleton" style="width: 60px"></span></td>
             <td><span class="skeleton" style="width: 80px"></span></td>
+            <td><span class="skeleton" style="width: 90px"></span></td>
           </tr>
         </tbody>
         <ng-template #loaded>
@@ -49,6 +51,7 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
               <td>{{ o.customerName }}</td>
               <td><span [class]="'badge badge-' + o.priority.toLowerCase()">{{ o.priority | priorityLabel }}</span></td>
               <td><span [class]="'badge badge-' + o.status.toLowerCase()">{{ o.status | statusLabel }}</span></td>
+              <td [class.unassigned]="!o.assignedTechnicianName">{{ o.assignedTechnicianName ?? 'Sin asignar' }}</td>
             </tr>
           </tbody>
         </ng-template>
@@ -75,6 +78,7 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
     tbody tr:last-child td { border-bottom: none; }
     .mono { font-family: 'DM Mono', monospace; color: var(--fs-text-faint); font-size: 12px; }
     .title-cell { font-weight: 500; }
+    .unassigned { color: var(--fs-text-faint); }
   `],
 })
 export class WorkOrdersComponent {

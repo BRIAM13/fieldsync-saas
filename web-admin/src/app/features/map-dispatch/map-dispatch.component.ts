@@ -13,20 +13,23 @@ import { Subscription } from 'rxjs';
 import * as L from 'leaflet';
 import { WorkOrderService } from '../../core/services/work-order.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Specialty, Technician, WorkOrder } from '../../core/models/work-order.model';
+import { Priority, Specialty, Technician, WorkOrder } from '../../core/models/work-order.model';
 import { priorityLabel, specialtyIcon, specialtyLabel, statusLabel } from '../../core/utils/labels';
 import { inferSpecialty } from '../../core/utils/specialty-match';
 import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.pipe';
 
+const PRIORITY_WEIGHT: Record<Priority, number> = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+
 /**
  * Asignación inteligente en mapa (característica clave #1) con **Leaflet + OpenStreetMap**.
  *
- * Dibuja marcadores reales de órdenes y técnicos sobre un mapa interactivo. Al hacer clic en
- * una orden se selecciona y el panel lateral se convierte en un desglose completo (problema
- * reportado, cliente, dirección, prioridad, estado) con la lista de técnicos ordenada según
- * quién coincide con la especialidad que la orden necesita — inferida por palabras clave de
- * su título, ya que el backend no tiene un campo de categoría separado. Los datos vienen del
- * backend (WorkOrderService).
+ * El panel lateral alterna entre dos vistas: una lista de **Órdenes** (para navegar sin tener
+ * que ubicar el pin a ojo — un clic centra el mapa ahí con `flyTo` y abre su popup) y la lista
+ * de **Técnicos**. Al hacer clic en una orden (desde la lista o el pin) se muestra un desglose
+ * completo (problema reportado, cliente, dirección, prioridad, estado, técnico asignado) con
+ * la lista de técnicos ordenada según quién coincide con la especialidad que la orden necesita
+ * — inferida por palabras clave de su título, ya que el backend no tiene un campo de categoría
+ * separado. Los datos vienen del backend (WorkOrderService).
  */
 @Component({
   selector: 'fs-map-dispatch',
@@ -56,7 +59,7 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
       <aside class="panel fs-card">
         <ng-container *ngIf="canAssign() && selectedOrder() as order; else generalPanel">
           <div class="detail-card">
-            <button class="back-btn" (click)="clearSelection()">← Ver todos los técnicos</button>
+            <button class="back-btn" (click)="clearSelection()">← Ver todos</button>
 
             <div class="detail-top">
               <span [class]="'badge badge-' + order.priority.toLowerCase()">{{ order.priority | priorityLabel }}</span>
@@ -71,6 +74,8 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
               <dd>{{ order.address }}</dd>
               <dt>Programada</dt>
               <dd>{{ formatScheduled(order.scheduledAtEpochMs) }}</dd>
+              <dt>Técnico asignado</dt>
+              <dd>{{ order.assignedTechnicianName ?? 'Sin asignar' }}</dd>
             </dl>
 
             <div class="assign-section">
@@ -79,13 +84,14 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
                 <li
                   *ngFor="let t of rankedTechnicians()"
                   [class.off]="!t.available"
-                  [class.suggested]="t.specialty === suggestedSpecialty()"
+                  [class.suggested]="t.specialty === suggestedSpecialty() && t.id !== order.assignedTechnicianId"
                 >
                   <div class="tech-dot" [class.available]="t.available"></div>
                   <div class="tech-info">
                     <span class="tech-name">
                       {{ t.name }}
-                      <span class="suggested-tag" *ngIf="t.specialty === suggestedSpecialty()">★ Sugerido</span>
+                      <span class="current-tag" *ngIf="t.id === order.assignedTechnicianId">✓ Asignado</span>
+                      <span class="suggested-tag" *ngIf="t.id !== order.assignedTechnicianId && t.specialty === suggestedSpecialty()">★ Sugerido</span>
                     </span>
                     <span class="tech-status">
                       <span [class]="'badge badge-' + t.specialty.toLowerCase()">
@@ -94,7 +100,7 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
                       {{ t.available ? 'Disponible' : 'Ocupado' }}
                     </span>
                   </div>
-                  <button *ngIf="t.available" (click)="assign(t.id)">Asignar</button>
+                  <button *ngIf="t.available && t.id !== order.assignedTechnicianId" (click)="assign(t.id)">Asignar</button>
                 </li>
               </ul>
               <ng-template #techSkeleton>
@@ -113,12 +119,39 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
         </ng-container>
 
         <ng-template #generalPanel>
-          <div class="panel-header">
+          <div class="tabs" *ngIf="canAssign()">
+            <button [class.active]="activeTab() === 'ordenes'" (click)="activeTab.set('ordenes')">
+              Órdenes <span class="tab-count">{{ sortedOrders().length }}</span>
+            </button>
+            <button [class.active]="activeTab() === 'tecnicos'" (click)="activeTab.set('tecnicos')">
+              Técnicos <span class="tab-count" *ngIf="!techniciansLoading()">{{ technicians().length }}</span>
+            </button>
+          </div>
+          <div class="panel-header" *ngIf="!canAssign()">
             <h3>Técnicos</h3>
             <span class="count" *ngIf="!techniciansLoading()">{{ technicians().length }}</span>
           </div>
 
-          <ul *ngIf="canAssign() && techniciansLoading(); else techList">
+          <ul *ngIf="canAssign() && activeTab() === 'ordenes'">
+            <li
+              *ngFor="let o of sortedOrders()"
+              class="order-row"
+              [class.off]="!o.location"
+              (click)="selectOrderFromList(o)"
+            >
+              <span class="priority-dot" [class]="'p-' + o.priority.toLowerCase()"></span>
+              <div class="tech-info">
+                <span class="tech-name">{{ o.title }}</span>
+                <span class="tech-status">
+                  <span [class]="'badge badge-' + o.status.toLowerCase()">{{ o.status | statusLabel }}</span>
+                  {{ o.assignedTechnicianName ?? 'Sin asignar' }}
+                </span>
+              </div>
+            </li>
+            <li class="empty-note" *ngIf="!sortedOrders().length">No hay órdenes todavía.</li>
+          </ul>
+
+          <ul *ngIf="canAssign() && techniciansLoading() && activeTab() === 'tecnicos'">
             <li *ngFor="let _ of skeletonRows">
               <span class="skeleton" style="width: 10px; height: 10px; border-radius: 50%"></span>
               <div class="tech-info">
@@ -128,29 +161,27 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
             </li>
           </ul>
 
-          <ng-template #techList>
-            <ul>
-              <li *ngFor="let t of technicians()" [class.off]="!t.available">
-                <div class="tech-dot" [class.available]="t.available"></div>
-                <div class="tech-info">
-                  <span class="tech-name">{{ t.name }}</span>
-                  <span class="tech-status">
-                    <span [class]="'badge badge-' + t.specialty.toLowerCase()">
-                      {{ specialtyIcon(t.specialty) }} {{ specialtyLabel(t.specialty) }}
-                    </span>
-                    {{ t.available ? 'Disponible' : 'Ocupado' }}
+          <ul *ngIf="(!canAssign() || !techniciansLoading()) && (!canAssign() || activeTab() === 'tecnicos')">
+            <li *ngFor="let t of technicians()" [class.off]="!t.available">
+              <div class="tech-dot" [class.available]="t.available"></div>
+              <div class="tech-info">
+                <span class="tech-name">{{ t.name }}</span>
+                <span class="tech-status">
+                  <span [class]="'badge badge-' + t.specialty.toLowerCase()">
+                    {{ specialtyIcon(t.specialty) }} {{ specialtyLabel(t.specialty) }}
                   </span>
-                </div>
-              </li>
-            </ul>
-          </ng-template>
+                  {{ t.available ? 'Disponible' : 'Ocupado' }}
+                </span>
+              </div>
+            </li>
+          </ul>
 
           <div class="footer-note" *ngIf="!canAssign()">
             <span class="lock">🔒</span>
             Tu rol ({{ roleLabel() }}) no puede asignar órdenes.
           </div>
           <div class="footer-note" *ngIf="canAssign()">
-            Haz clic en un pin de orden 📍 en el mapa para ver el desglose y asignarla.
+            Haz clic en una orden (arriba o en el mapa 📍) para ver el desglose y asignarla.
           </div>
         </ng-template>
       </aside>
@@ -186,13 +217,32 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
       z-index: 5;
     }
 
-    .panel { padding: 18px; }
+    .panel { padding: 18px; max-height: 480px; overflow-y: auto; }
     .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .panel-header h3 { margin: 0; font-size: 15px; }
     .count {
       background: var(--fs-primary-light); color: #60a5fa;
       font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 100px;
     }
+
+    /* Selector de pestañas Órdenes/Técnicos */
+    .tabs {
+      display: flex; gap: 4px; padding: 3px;
+      background: var(--fs-bg); border: 1px solid var(--fs-border);
+      border-radius: 100px; margin-bottom: 12px;
+    }
+    .tabs button {
+      flex: 1; background: transparent; color: var(--fs-text-muted);
+      padding: 7px 0; border-radius: 100px; font-size: 12.5px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .tabs button:hover { background: rgba(255, 255, 255, 0.03); }
+    .tabs button.active { background: var(--fs-primary); color: #fff; }
+    .tab-count {
+      font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 100px;
+      background: rgba(255, 255, 255, 0.16);
+    }
+    .tabs button:not(.active) .tab-count { background: var(--fs-surface-2); }
 
     ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
     li {
@@ -203,6 +253,14 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
     li:hover { background: rgba(255, 255, 255, 0.03); }
     li.off { opacity: 0.55; }
     li.suggested { background: var(--fs-primary-light); }
+    li.order-row { cursor: pointer; }
+    .empty-note { color: var(--fs-text-faint); font-size: 12.5px; padding: 12px 8px; }
+
+    .priority-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .priority-dot.p-urgent { background: #f87171; }
+    .priority-dot.p-high { background: #fb923c; }
+    .priority-dot.p-medium { background: #facc15; }
+    .priority-dot.p-low { background: #4ade80; }
 
     .tech-dot {
       width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
@@ -217,6 +275,10 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
     .suggested-tag {
       font-size: 10px; font-weight: 700; color: #facc15;
       background: rgba(250, 204, 21, 0.14); padding: 1px 7px; border-radius: 100px;
+    }
+    .current-tag {
+      font-size: 10px; font-weight: 700; color: #4ade80;
+      background: rgba(74, 222, 128, 0.14); padding: 1px 7px; border-radius: 100px;
     }
 
     button {
@@ -277,6 +339,7 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
   readonly techniciansLoading = signal(true);
   readonly selectedOrderId = signal<string | null>(null);
   readonly orders = signal<WorkOrder[]>([]);
+  readonly activeTab = signal<'ordenes' | 'tecnicos'>('ordenes');
   readonly skeletonRows = Array.from({ length: 3 });
 
   readonly specialtyLabel = specialtyLabel;
@@ -285,6 +348,14 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
   /** La orden que el mapa tiene seleccionada, resuelta desde la lista viva de órdenes. */
   readonly selectedOrder = computed(
     () => this.orders().find((o) => o.id === this.selectedOrderId()) ?? null,
+  );
+
+  /** Órdenes para la pestaña "Órdenes": urgentes primero, luego por fecha programada. */
+  readonly sortedOrders = computed(() =>
+    [...this.orders()].sort((a, b) => {
+      const byPriority = PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority];
+      return byPriority !== 0 ? byPriority : a.scheduledAtEpochMs - b.scheduledAtEpochMs;
+    }),
   );
 
   /** Especialidad que el título de la orden sugiere (palabras clave — ver specialty-match.ts). */
@@ -319,6 +390,7 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
   private map!: L.Map;
   private readonly orderLayer = L.layerGroup();
   private readonly techLayer = L.layerGroup();
+  private readonly orderMarkers = new Map<string, L.Marker>();
   private subs = new Subscription();
 
   ngAfterViewInit(): void {
@@ -362,6 +434,15 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
     this.selectedOrderId.set(null);
   }
 
+  /** Selección desde la lista del panel: centra el mapa en la orden y abre su popup. */
+  selectOrderFromList(order: WorkOrder): void {
+    this.selectedOrderId.set(order.id);
+    if (order.location && this.map) {
+      this.map.flyTo([order.location.lat, order.location.lng], 15, { duration: 0.8 });
+    }
+    this.orderMarkers.get(order.id)?.openPopup();
+  }
+
   retry(): void {
     this.service.refresh();
     if (this.canAssign()) this.loadTechnicians();
@@ -402,19 +483,22 @@ export class MapDispatchComponent implements AfterViewInit, OnDestroy {
   private renderOrders(orders: WorkOrder[]): void {
     if (!this.map) return;
     this.orderLayer.clearLayers();
+    this.orderMarkers.clear();
     const techById = new Map(this.technicians().map((t) => [t.id, t]));
 
     for (const order of orders) {
       if (!order.location) continue;
       const assigned = order.status !== 'UNASSIGNED';
-      L.marker([order.location.lat, order.location.lng], {
+      const techLine = order.assignedTechnicianName ? `<br>🔧 ${order.assignedTechnicianName}` : '';
+      const marker = L.marker([order.location.lat, order.location.lng], {
         icon: this.pinIcon('📍', assigned),
       })
         .bindPopup(
-          `<b>${order.title}</b><br>${order.customerName}<br>${order.address}<br>${priorityLabel(order.priority)} · ${statusLabel(order.status)}`,
+          `<b>${order.title}</b><br>${order.customerName}<br>${order.address}<br>${priorityLabel(order.priority)} · ${statusLabel(order.status)}${techLine}`,
         )
         .on('click', () => this.selectedOrderId.set(order.id))
         .addTo(this.orderLayer);
+      this.orderMarkers.set(order.id, marker);
 
       // Línea orden → técnico asignado.
       const tech = order.assignedTechnicianId ? techById.get(order.assignedTechnicianId) : undefined;

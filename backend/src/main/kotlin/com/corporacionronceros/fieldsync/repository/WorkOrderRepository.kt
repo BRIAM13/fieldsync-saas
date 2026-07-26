@@ -50,12 +50,20 @@ class InMemoryWorkOrderRepository : WorkOrderRepository {
         SeedData.orders().forEach { orders[it.id] = SeedData.DEMO_COMPANY_ID to it }
     }
 
+    /** Resuelve `assignedTechnicianName` para mostrar, sin necesidad de un FK real. */
+    private fun WorkOrder.withTechName(companyId: String): WorkOrder {
+        val techName = assignedTechnicianId?.let { techId ->
+            techs.find { it.first == companyId && it.second.id == techId }?.second?.name
+        }
+        return copy(assignedTechnicianName = techName)
+    }
+
     override suspend fun all(companyId: String): List<WorkOrder> = mutex.withLock {
-        orders.values.filter { it.first == companyId }.map { it.second }
+        orders.values.filter { it.first == companyId }.map { it.second.withTechName(companyId) }
     }
 
     override suspend fun byId(companyId: String, id: String): WorkOrder? = mutex.withLock {
-        orders[id]?.takeIf { it.first == companyId }?.second
+        orders[id]?.takeIf { it.first == companyId }?.second?.withTechName(companyId)
     }
 
     override suspend fun technicians(companyId: String): List<Technician> = mutex.withLock {
@@ -67,7 +75,7 @@ class InMemoryWorkOrderRepository : WorkOrderRepository {
             val entry = orders[id]?.takeIf { it.first == companyId } ?: return@withLock null
             val updated = entry.second.copy(status = status)
             orders[id] = companyId to updated
-            updated
+            updated.withTechName(companyId)
         }
 
     override suspend fun assign(companyId: String, id: String, technicianId: String): WorkOrder? =
@@ -80,7 +88,7 @@ class InMemoryWorkOrderRepository : WorkOrderRepository {
                 status = WorkOrderStatus.ASSIGNED
             )
             orders[id] = companyId to updated
-            updated
+            updated.withTechName(companyId)
         }
 
     override suspend fun applyPending(companyId: String, changes: List<PendingChange>): Pair<Int, List<String>> =
@@ -121,6 +129,7 @@ class InMemoryWorkOrderRepository : WorkOrderRepository {
     }
 
     override suspend fun byCustomer(companyId: String, customerId: String): List<WorkOrder> = mutex.withLock {
-        orders.values.filter { it.first == companyId && it.second.customerId == customerId }.map { it.second }
+        orders.values.filter { it.first == companyId && it.second.customerId == customerId }
+            .map { it.second.withTechName(companyId) }
     }
 }

@@ -61,8 +61,9 @@ class ExposedWorkOrderRepository : WorkOrderRepository {
     }
 
     override suspend fun all(companyId: String): List<WorkOrder> = dbQuery {
+        val techNames = technicianNamesById(companyId)
         WorkOrdersTable.selectAll().where { WorkOrdersTable.companyId eq companyId }
-            .map { it.toWorkOrder() }
+            .map { it.toWorkOrder(techNames[it[WorkOrdersTable.assignedTechnicianId]]) }
     }
 
     override suspend fun byId(companyId: String, id: String): WorkOrder? = dbQuery {
@@ -146,17 +147,30 @@ class ExposedWorkOrderRepository : WorkOrderRepository {
     }
 
     override suspend fun byCustomer(companyId: String, customerId: String): List<WorkOrder> = dbQuery {
+        val techNames = technicianNamesById(companyId)
         WorkOrdersTable.selectAll().where {
             (WorkOrdersTable.companyId eq companyId) and (WorkOrdersTable.customerId eq customerId)
-        }.map { it.toWorkOrder() }
+        }.map { it.toWorkOrder(techNames[it[WorkOrdersTable.assignedTechnicianId]]) }
     }
 
     // ---- helpers (dentro de una transacción) ----
 
-    private fun fetch(companyId: String, id: String): WorkOrder? =
-        WorkOrdersTable.selectAll().where {
+    private fun technicianNamesById(companyId: String): Map<String, String> =
+        TechniciansTable.selectAll().where { TechniciansTable.companyId eq companyId }
+            .associate { it[TechniciansTable.id] to it[TechniciansTable.name] }
+
+    private fun fetch(companyId: String, id: String): WorkOrder? {
+        val row = WorkOrdersTable.selectAll().where {
             (WorkOrdersTable.id eq id) and (WorkOrdersTable.companyId eq companyId)
-        }.singleOrNull()?.toWorkOrder()
+        }.singleOrNull() ?: return null
+        val techId = row[WorkOrdersTable.assignedTechnicianId]
+        val techName = techId?.let {
+            TechniciansTable.selectAll().where {
+                (TechniciansTable.id eq techId) and (TechniciansTable.companyId eq companyId)
+            }.singleOrNull()?.get(TechniciansTable.name)
+        }
+        return row.toWorkOrder(techName)
+    }
 
     private fun insertOrder(companyId: String, o: WorkOrder) {
         WorkOrdersTable.insert {
@@ -174,7 +188,7 @@ class ExposedWorkOrderRepository : WorkOrderRepository {
         }
     }
 
-    private fun ResultRow.toWorkOrder(): WorkOrder {
+    private fun ResultRow.toWorkOrder(technicianName: String? = null): WorkOrder {
         val lat = this[WorkOrdersTable.lat]
         val lng = this[WorkOrdersTable.lng]
         return WorkOrder(
@@ -187,6 +201,7 @@ class ExposedWorkOrderRepository : WorkOrderRepository {
             scheduledAtEpochMs = this[WorkOrdersTable.scheduledAtEpochMs],
             location = if (lat != null && lng != null) GeoPoint(lat, lng) else null,
             assignedTechnicianId = this[WorkOrdersTable.assignedTechnicianId],
+            assignedTechnicianName = technicianName,
             customerId = this[WorkOrdersTable.customerId]
         )
     }
