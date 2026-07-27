@@ -107,18 +107,22 @@ const ROLE_LABELS: Record<string, string> = {
       z-index: 10;
     }
 
-    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .brand-mark {
-      width: 34px; height: 34px; border-radius: 10px;
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
       background: linear-gradient(135deg, var(--fs-primary), var(--fs-primary-dark));
       display: grid; place-items: center;
       color: #fff; font-weight: 700; font-size: 13px;
       font-family: 'Space Grotesk', sans-serif;
     }
-    .brand-name { font-weight: 700; font-size: 15px; color: var(--fs-text); font-family: 'Space Grotesk', sans-serif; }
-    .brand-sub { font-size: 11px; color: var(--fs-text-faint); }
+    .brand-name { font-weight: 700; font-size: 15px; color: var(--fs-text); font-family: 'Space Grotesk', sans-serif; white-space: nowrap; }
+    .brand-sub { font-size: 11px; color: var(--fs-text-faint); white-space: nowrap; }
 
-    nav { display: flex; gap: 4px; flex: 1; }
+    nav {
+      display: flex; gap: 4px; flex: 1; min-width: 0;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    nav::-webkit-scrollbar { display: none; }
     nav a {
       color: var(--fs-text-muted);
       text-decoration: none;
@@ -126,25 +130,27 @@ const ROLE_LABELS: Record<string, string> = {
       border-radius: 100px;
       font-size: 14px;
       font-weight: 500;
+      white-space: nowrap;
       transition: background 0.15s, color 0.15s;
     }
     nav a:hover { background: rgba(255, 255, 255, 0.04); color: var(--fs-text); }
     nav a.active { background: var(--fs-primary-light); color: #60a5fa; font-weight: 600; }
 
-    .session { display: flex; align-items: center; gap: 10px; }
+    .session { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .avatar {
-      width: 32px; height: 32px; border-radius: 50%;
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
       background: var(--fs-surface-2); border: 1px solid var(--fs-border);
       display: grid; place-items: center;
       font-size: 12px; font-weight: 700; color: var(--fs-text);
     }
-    .who-name { font-size: 13px; font-weight: 600; color: var(--fs-text); line-height: 1.2; }
-    .who-role { font-size: 11px; color: var(--fs-text-faint); }
+    .who { min-width: 0; }
+    .who-name { font-size: 13px; font-weight: 600; color: var(--fs-text); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .who-role { font-size: 11px; color: var(--fs-text-faint); white-space: nowrap; }
     .logout {
       background: transparent;
       border: 1px solid var(--fs-border);
       color: var(--fs-text-muted);
-      width: 32px; height: 32px; border-radius: 50%;
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
       cursor: pointer; font-size: 14px;
       display: grid; place-items: center;
       transition: all 0.15s;
@@ -153,6 +159,17 @@ const ROLE_LABELS: Record<string, string> = {
 
     main { flex: 1; width: 100%; }
     main.with-header { padding: 28px; max-width: 1200px; margin: 0 auto; }
+
+    @media (max-width: 720px) {
+      header { gap: 16px; padding: 12px 16px; }
+      .brand-sub { display: none; }
+    }
+    @media (max-width: 560px) {
+      header { gap: 10px; }
+      nav a { padding: 8px 12px; font-size: 13px; }
+      .who { display: none; }
+      main.with-header { padding: 16px; }
+    }
   `],
 })
 export class AppComponent {

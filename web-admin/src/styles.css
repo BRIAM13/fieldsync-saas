@@ -32,6 +32,10 @@
 html,
 body {
   height: 100%;
+  /* Red de seguridad: los contenedores con contenido ancho (tablas, el mapa de despacho)
+     ya resuelven su propio scroll horizontal — la página en sí nunca debería desplazarse
+     de lado, así que un desborde accidental se recorta en vez de deformar el layout. */
+  overflow-x: hidden;
 }
 
 body {

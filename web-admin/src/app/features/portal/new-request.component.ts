@@ -67,7 +67,7 @@ const PRIORITIES: { value: Priority; label: string }[] = [
     </form>
   `,
   styles: [`
-    .header-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .header-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
     h2 { margin: 0; font-size: 22px; }
     .sub { margin: 4px 0 0; color: var(--fs-text-faint); font-size: 13px; }
     .back-link { color: var(--fs-text-muted); text-decoration: none; font-size: 13px; font-weight: 600; }

@@ -132,7 +132,7 @@ const PRIORITY_WEIGHT: Record<Priority, number> = { URGENT: 0, HIGH: 1, MEDIUM: 
             <span class="count" *ngIf="!techniciansLoading()">{{ technicians().length }}</span>
           </div>
 
-          <ul *ngIf="canAssign() && activeTab() === 'ordenes'">
+          <ul *ngIf="canAssign() && activeTab() === 'ordenes' && !service.loading(); else ordersSkeleton">
             <li
               *ngFor="let o of sortedOrders()"
               class="order-row"
@@ -150,6 +150,17 @@ const PRIORITY_WEIGHT: Record<Priority, number> = { URGENT: 0, HIGH: 1, MEDIUM: 
             </li>
             <li class="empty-note" *ngIf="!sortedOrders().length">No hay órdenes todavía.</li>
           </ul>
+          <ng-template #ordersSkeleton>
+            <ul *ngIf="canAssign() && activeTab() === 'ordenes'">
+              <li *ngFor="let _ of skeletonRows">
+                <span class="skeleton" style="width: 10px; height: 10px; border-radius: 50%"></span>
+                <div class="tech-info">
+                  <span class="skeleton" style="width: 140px; margin-bottom: 4px"></span>
+                  <span class="skeleton" style="width: 70px; height: 10px"></span>
+                </div>
+              </li>
+            </ul>
+          </ng-template>
 
           <ul *ngIf="canAssign() && techniciansLoading() && activeTab() === 'tecnicos'">
             <li *ngFor="let _ of skeletonRows">
@@ -315,6 +326,12 @@ const PRIORITY_WEIGHT: Record<Priority, number> = { URGENT: 0, HIGH: 1, MEDIUM: 
 
     .assign-section { border-top: 1px solid var(--fs-border); padding-top: 14px; }
     .assign-section h4 { margin: 0 0 8px; font-size: 12px; color: var(--fs-text-faint); text-transform: uppercase; letter-spacing: 0.03em; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .map { height: 340px; }
+      .panel { max-height: 420px; }
+    }
 
     /* Marcadores (divIcon) */
     :host ::ng-deep .fs-pin {

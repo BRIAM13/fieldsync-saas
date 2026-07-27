@@ -68,6 +68,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
     </div>
 
     <div class="fs-card table-card" *ngIf="!service.error()">
+      <div class="table-scroll">
       <table>
         <thead>
           <tr>
@@ -93,10 +94,11 @@ const ROLE_LABELS: Record<UserRole, string> = {
           </tbody>
         </ng-template>
       </table>
+      </div>
     </div>
   `,
   styles: [`
-    .header-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .header-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
     h2 { margin: 0; font-size: 22px; }
     .sub { margin: 4px 0 0; color: var(--fs-text-faint); font-size: 13px; }
 
@@ -122,7 +124,8 @@ const ROLE_LABELS: Record<UserRole, string> = {
     .err { color: #f87171; font-size: 13px; margin: 0; }
 
     .table-card { overflow: hidden; }
-    table { width: 100%; border-collapse: collapse; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; min-width: 480px; border-collapse: collapse; }
     th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--fs-border); font-size: 13px; }
     th {
       color: var(--fs-text-faint); font-weight: 600; text-transform: uppercase;
@@ -132,6 +135,10 @@ const ROLE_LABELS: Record<UserRole, string> = {
     tbody tr:last-child td { border-bottom: none; }
     .mono { font-family: 'DM Mono', monospace; color: var(--fs-text-faint); font-size: 12px; }
     .title-cell { font-weight: 500; }
+
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+    }
   `],
 })
 export class UserManagementComponent {

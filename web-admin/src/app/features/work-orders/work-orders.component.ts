@@ -22,6 +22,7 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
     </div>
 
     <div class="fs-card table-card" *ngIf="!service.error()">
+      <div class="table-scroll">
       <table>
         <thead>
           <tr>
@@ -56,6 +57,7 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
           </tbody>
         </ng-template>
       </table>
+      </div>
     </div>
   `,
   styles: [`
@@ -64,7 +66,8 @@ import { PriorityLabelPipe, StatusLabelPipe } from '../../core/pipes/enum-label.
     .sub { margin: 4px 0 0; color: var(--fs-text-faint); font-size: 13px; }
 
     .table-card { overflow: hidden; }
-    table { width: 100%; border-collapse: collapse; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; min-width: 640px; border-collapse: collapse; }
     th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--fs-border); font-size: 13px; }
     th {
       color: var(--fs-text-faint);
