@@ -28,6 +28,17 @@ client-app/ios/Pods/
 marketing/node_modules/
 marketing/**/out/
 marketing/**/*.mp4
+marketing/**/.thumbnails/
+
+# ─── Secretos — nunca deben versionarse ───
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.pfx
+*.keystore
+id_rsa*
 
 # ─── OS / editor ───
 .DS_Store
